@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Futuristic Autopilot Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="ui-layer">
+      <!-- HUD during gameplay -->
+      <div id="hud" class="hidden">
+        <div class="hud-top">
+          <div class="score-container">
+            <div class="label">DISTANCE</div>
+            <div id="score">0000</div>
+          </div>
+          
+          <div class="sys-buttons">
+            <button class="sys-btn" id="camera-btn">🎥 CAM: 3RD</button>
+            <button class="sys-btn" id="pause-btn">⏸ PAUSE</button>
+            <button class="sys-btn" id="menu-btn">⏹ MENU</button>
+          </div>
+          
+          <div class="speed-container">
+            <div class="label">SPEED</div>
+            <div id="speed">120</div>
+            <div class="unit">KM/H</div>
+          </div>
+        </div>
+        
+        <button id="toggle-panel-btn" class="sys-btn" style="position: absolute; top: 120px; left: 30px; display: flex; align-items: center; gap: 10px; z-index: 100; pointer-events: auto;">⚙️ ENVIRONMENT CONTROLS</button>
+
+        <div id="control-panel" class="closed">
+          <div class="control-group">
+            <div class="control-label">TIME</div>
+            <div class="btn-grid">
+              <div class="ctrl-btn" data-type="time" data-val="morning">🌅 Morning</div>
+              <div class="ctrl-btn" data-type="time" data-val="noon">☀️ Noon</div>
+              <div class="ctrl-btn" data-type="time" data-val="evening">🌇 Evening</div>
+              <div class="ctrl-btn" data-type="time" data-val="night">🌙 Night</div>
+              <div class="ctrl-btn" data-type="time" data-val="midnight">🌌 Midnight</div>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <div class="control-label">SEASON</div>
+            <div class="btn-grid">
+              <div class="ctrl-btn" data-type="season" data-val="spring">🌸 Spring</div>
+              <div class="ctrl-btn" data-type="season" data-val="summer">☀️ Summer</div>
+              <div class="ctrl-btn" data-type="season" data-val="autumn">🍂 Autumn</div>
+              <div class="ctrl-btn" data-type="season" data-val="winter">❄️ Winter</div>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <div class="control-label">WEATHER</div>
+            <div class="btn-grid">
+              <div class="ctrl-btn" data-type="weather" data-val="clear">☀️ Clear</div>
+              <div class="ctrl-btn" data-type="weather" data-val="cloudy">☁️ Cloudy</div>
+              <div class="ctrl-btn" data-type="weather" data-val="rain">🌧 Rain</div>
+              <div class="ctrl-btn" data-type="weather" data-val="storm">⛈ Storm</div>
+              <div class="ctrl-btn" data-type="weather" data-val="snow">❄ Snow</div>
+              <div class="ctrl-btn" data-type="weather" data-val="fog">🌫 Fog</div>
+              <div class="ctrl-btn" data-type="weather" data-val="rainbow">🌈 Rainbow</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Start Menu -->
+      <div id="start-menu" class="menu-overlay">
+        <div class="glitch-title" data-text="AUTOPILOT">AUTOPILOT</div>
+        <div class="subtitle">NEON HIGHWAY</div>
+        <button id="start-btn">ENGAGE</button>
+        <div class="instructions">
+          A / D or Arrow Keys - Change Lane<br>
+          Swipe on Mobile
+        </div>
+      </div>
+
+      <!-- Game Over -->
+      <div id="game-over-menu" class="menu-overlay hidden">
+        <div class="glitch-title" data-text="CRASHED">CRASHED</div>
+        <div class="subtitle">CONNECTION LOST</div>
+        <div class="final-score">FINAL DISTANCE: <span id="final-score-val">0</span></div>
+        <button id="restart-btn">REBOOT SYSTEM</button>
+      </div>
+    </div>
+
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
