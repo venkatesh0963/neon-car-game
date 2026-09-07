@@ -12,24 +12,24 @@
       <div id="hud" class="hidden">
         <div class="hud-top">
           <div class="score-container">
-            <div class="label">DISTANCE</div>
+            <div class="label">DIST</div>
             <div id="score">0000</div>
           </div>
           
           <div class="sys-buttons">
-            <button class="sys-btn" id="camera-btn">🎥 CAM: 3RD</button>
-            <button class="sys-btn" id="pause-btn">⏸ PAUSE</button>
-            <button class="sys-btn" id="menu-btn">⏹ MENU</button>
+            <button class="sys-btn" id="camera-btn" title="Camera">🎥³</button>
+            <button class="sys-btn" id="pause-btn" title="Pause">⏸</button>
+            <button class="sys-btn" id="menu-btn" title="Menu">⏹</button>
+            <button class="sys-btn" id="toggle-panel-btn" title="Environment Controls">⚙️</button>
           </div>
           
           <div class="speed-container">
-            <div class="label">SPEED</div>
+            <div class="label">SPD</div>
             <div id="speed">120</div>
             <div class="unit">KM/H</div>
           </div>
         </div>
-        
-        <button id="toggle-panel-btn" class="sys-btn" style="position: absolute; top: 120px; left: 30px; display: flex; align-items: center; gap: 10px; z-index: 100; pointer-events: auto;">⚙️ ENVIRONMENT CONTROLS</button>
+
 
         <div id="control-panel" class="closed">
           <div class="control-group">

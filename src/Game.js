@@ -16,7 +16,7 @@ export class Game {
     this.state = 'START'; // START, PLAYING, GAME_OVER
     this.isPaused = false;
     this.cameraModeIndex = 0; // 0: 3rd, 1: 1st, 2: 2nd
-    this.cameraModeNames = ['🎥 CAM: 3RD', '🎥 CAM: 1ST', '🎥 CAM: 2ND'];
+    this.cameraModeNames = ['🎥³', '🎥¹', '🎥²'];
     
     this.baseSpeed = 80;
     this.speed = this.baseSpeed;
@@ -56,10 +56,10 @@ export class Game {
         if (this.state === 'PLAYING') {
           this.isPaused = !this.isPaused;
           if (this.isPaused) {
-            pauseBtn.innerText = "▶ RESUME";
+            pauseBtn.innerText = "▶";
             pauseBtn.classList.add('active');
           } else {
-            pauseBtn.innerText = "⏸ PAUSE";
+            pauseBtn.innerText = "⏸";
             pauseBtn.classList.remove('active');
           }
         }
@@ -126,7 +126,7 @@ export class Game {
     
     const pauseBtn = document.getElementById('pause-btn');
     if (pauseBtn) {
-      pauseBtn.innerText = "⏸ PAUSE";
+      pauseBtn.innerText = "⏸";
       pauseBtn.classList.remove('active');
     }
 
@@ -174,10 +174,14 @@ export class Game {
     // Camera modes logic
     if (this.cameraModeIndex === 0) {
       // 3rd Person
-      const targetX = this.player.mesh.position.x * 0.3;
+      const isMobile = this.camera.aspect < 1;
+      const followRatio = isMobile ? 0.8 : 0.3;
+      const targetZ = isMobile ? 22 : 15;
+      
+      const targetX = this.player.mesh.position.x * followRatio;
       this.camera.position.x += (targetX - this.camera.position.x) * dt * 5;
       this.camera.position.y += (8 - this.camera.position.y) * dt * 5;
-      this.camera.position.z += (15 - this.camera.position.z) * dt * 5;
+      this.camera.position.z += (targetZ - this.camera.position.z) * dt * 5;
       this.camera.lookAt(this.camera.position.x, 0, -20);
     } else if (this.cameraModeIndex === 1) {
       // 1st Person (Cockpit)
