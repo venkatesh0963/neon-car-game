@@ -290,3 +290,73 @@ button:hover {
   font-weight: bold;
   text-shadow: 0 0 10px var(--electric-blue);
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  #hud {
+    padding: 15px;
+  }
+  
+  .hud-top {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .sys-buttons {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-top: 15px;
+    gap: 10px;
+  }
+
+  .sys-btn {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  #score, #speed {
+    font-size: 32px;
+  }
+
+  .label {
+    font-size: 12px;
+  }
+
+  #toggle-panel-btn {
+    top: 140px !important;
+    left: 15px !important;
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  #control-panel {
+    top: 190px;
+    left: 15px;
+    width: calc(100vw - 30px);
+    max-height: calc(100vh - 220px);
+  }
+
+  .glitch-title {
+    font-size: 14vw;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    margin-bottom: 30px;
+  }
+
+  button {
+    padding: 10px 20px;
+    font-size: 18px;
+  }
+
+  .instructions {
+    margin-top: 30px;
+    font-size: 14px;
+  }
+
+  .final-score {
+    font-size: 24px;
+  }
+}

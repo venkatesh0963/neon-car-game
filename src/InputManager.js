@@ -25,6 +25,18 @@ export class InputManager {
     // Mobile Touch Events
     window.addEventListener('touchstart', (e) => {
       this.touchStartX = e.changedTouches[0].screenX;
+      
+      // Tap on left/right side of screen for quick lane change
+      const tapX = e.changedTouches[0].clientX;
+      const screenWidth = window.innerWidth;
+      // Only consider it a tap if we are in the lower 70% of the screen so we don't interfere with top UI buttons
+      if (e.changedTouches[0].clientY > window.innerHeight * 0.3) {
+        if (tapX < screenWidth / 2) {
+          this.swipe.left = true;
+        } else {
+          this.swipe.right = true;
+        }
+      }
     });
 
     window.addEventListener('touchend', (e) => {
