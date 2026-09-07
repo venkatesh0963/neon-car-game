@@ -111,6 +111,9 @@ export class Game {
     this.ui.startMenu.classList.add('hidden');
     this.ui.gameOverMenu.classList.add('hidden');
     this.ui.hud.classList.remove('hidden');
+    
+    const dpad = document.getElementById('dpad');
+    if (dpad) dpad.classList.remove('hidden');
   }
 
   restartGame() {
@@ -133,6 +136,9 @@ export class Game {
     this.ui.hud.classList.add('hidden');
     this.ui.gameOverMenu.classList.add('hidden');
     this.ui.startMenu.classList.remove('hidden');
+    
+    const dpad = document.getElementById('dpad');
+    if (dpad) dpad.classList.add('hidden');
   }
 
   gameOver() {
@@ -140,6 +146,9 @@ export class Game {
     this.ui.hud.classList.add('hidden');
     this.ui.gameOverMenu.classList.remove('hidden');
     this.ui.finalScore.innerText = Math.floor(this.distance);
+    
+    const dpad = document.getElementById('dpad');
+    if (dpad) dpad.classList.add('hidden');
   }
 
   update(dt) {

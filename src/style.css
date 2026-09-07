@@ -216,6 +216,47 @@ body {
   font-weight: bold;
 }
 
+/* D-Pad */
+#dpad {
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: auto;
+  z-index: 100;
+}
+
+.dpad-row {
+  display: flex;
+  gap: 10px;
+}
+
+.dpad-btn {
+  background: rgba(0, 162, 255, 0.1);
+  border: 1px solid rgba(0, 162, 255, 0.5);
+  color: var(--cyan);
+  width: 60px;
+  height: 60px;
+  font-size: 24px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: none;
+}
+
+.dpad-btn:active, .dpad-btn.pressed {
+  background: rgba(0, 255, 255, 0.4);
+  color: #fff;
+  border-color: var(--cyan);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.6) inset, 0 0 20px rgba(0, 255, 255, 0.6);
+}
+
 /* Menus */
 .menu-overlay {
   position: absolute;
@@ -346,5 +387,16 @@ button:hover {
 
   .final-score {
     font-size: 24px;
+  }
+
+  #dpad {
+    bottom: 20px;
+    right: 20px;
+  }
+  
+  .dpad-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
   }
 }

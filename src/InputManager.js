@@ -26,6 +26,9 @@ export class InputManager {
     window.addEventListener('touchstart', (e) => {
       this.touchStartX = e.changedTouches[0].screenX;
       
+      // Skip side tap logic if pressing a D-Pad button
+      if (e.target.closest('.dpad-btn')) return;
+      
       // Tap on left/right side of screen for quick lane change
       const tapX = e.changedTouches[0].clientX;
       const screenWidth = window.innerWidth;
@@ -40,9 +43,41 @@ export class InputManager {
     });
 
     window.addEventListener('touchend', (e) => {
+      if (e.target.closest('.dpad-btn')) return;
       this.touchEndX = e.changedTouches[0].screenX;
       this.handleSwipe();
     });
+
+    // D-Pad Event Listeners
+    this.setupDPad('dpad-up', 'up');
+    this.setupDPad('dpad-down', 'down');
+    this.setupDPad('dpad-left', 'left');
+    this.setupDPad('dpad-right', 'right');
+  }
+
+  setupDPad(id, key) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+
+    const press = (e) => {
+      e.preventDefault();
+      this.keys[key] = true;
+      btn.classList.add('pressed');
+    };
+
+    const release = (e) => {
+      e.preventDefault();
+      this.keys[key] = false;
+      btn.classList.remove('pressed');
+    };
+
+    btn.addEventListener('mousedown', press);
+    btn.addEventListener('touchstart', press);
+    
+    btn.addEventListener('mouseup', release);
+    btn.addEventListener('mouseleave', release);
+    btn.addEventListener('touchend', release);
+    btn.addEventListener('touchcancel', release);
   }
 
   onKeyDown(e) {
