@@ -219,8 +219,9 @@ body {
 /* D-Pad */
 #dpad {
   position: absolute;
-  bottom: 80px;
-  right: 40px;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -390,8 +391,7 @@ button:hover {
   }
 
   #dpad {
-    bottom: 60px;
-    right: 20px;
+    bottom: 100px;
   }
   
   .dpad-btn {
