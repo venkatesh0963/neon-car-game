@@ -151,8 +151,16 @@ export class Player {
     this.mesh.position.set(this.targetX, 0, 0);
     this.scene.add(this.mesh);
 
-    // Bounding box for collisions
-    this.box = new THREE.Box3().setFromObject(this.mesh);
+    // Bounding box for collisions - Optimized
+    const tempBox = new THREE.Box3().setFromObject(this.mesh);
+    this.carSize = new THREE.Vector3();
+    tempBox.getSize(this.carSize);
+    this.carSize.subScalar(0.6); // Leniency
+    
+    this.carCenterOffset = new THREE.Vector3();
+    tempBox.getCenter(this.carCenterOffset).sub(this.mesh.position);
+    
+    this.box = new THREE.Box3();
   }
 
   initAIPath() {
@@ -202,9 +210,9 @@ export class Player {
     const tilt = (this.targetX - this.mesh.position.x) * -0.05;
     this.mesh.rotation.z = THREE.MathUtils.lerp(this.mesh.rotation.z, tilt, dt * 15);
     
-    // Update bounding box
-    this.box.setFromObject(this.mesh);
-    this.box.expandByScalar(-0.3);
+    // Update bounding box (O(1) fast update)
+    const center = this.mesh.position.clone().add(this.carCenterOffset);
+    this.box.setFromCenterAndSize(center, this.carSize);
   }
 
   handleInput() {

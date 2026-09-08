@@ -82,10 +82,20 @@ export class TrafficManager {
     const laneIndex = Math.floor(Math.random() * 3);
     v.position.set(this.lanes[laneIndex], 0, -300); // spawn far ahead
     
+    const tempBox = new THREE.Box3().setFromObject(v);
+    const size = new THREE.Vector3();
+    tempBox.getSize(size);
+    size.subScalar(0.6); // Leniency
+    
+    const centerOffset = new THREE.Vector3();
+    tempBox.getCenter(centerOffset).sub(v.position);
+
     this.scene.add(v);
-    this.vehicles.push({
-      mesh: v,
-      box: new THREE.Box3()
+    this.vehicles.push({ 
+      mesh: v, 
+      box: new THREE.Box3(),
+      size: size,
+      centerOffset: centerOffset
     });
   }
 
@@ -109,8 +119,8 @@ export class TrafficManager {
       const relativeSpeed = playerSpeed - 30; // Traffic drives at 30km/h
       
       v.mesh.position.z += relativeSpeed * dt;
-      v.box.setFromObject(v.mesh);
-      v.box.expandByScalar(-0.3); // leniency
+      const center = v.mesh.position.clone().add(v.centerOffset);
+      v.box.setFromCenterAndSize(center, v.size);
 
       // Update detection box color based on distance to player
       const distance = v.mesh.position.distanceTo(playerCenter);
