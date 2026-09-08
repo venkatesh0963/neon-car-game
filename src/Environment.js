@@ -88,7 +88,11 @@ export class Environment {
 
   initRoad() {
     const roadGeometry = new THREE.PlaneGeometry(this.roadWidth, this.roadLength);
-    const roadMaterial = new THREE.MeshLambertMaterial({ color: 0x1A1A1A });
+    const roadMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x1A1A1A,
+      roughness: 0.8,
+      metalness: 0.1
+    });
     
     const road = new THREE.Mesh(roadGeometry, roadMaterial);
     road.rotation.x = -Math.PI / 2;
@@ -166,9 +170,16 @@ export class Environment {
       bulb.position.x = xSign * -1.5;
       group.add(bulb);
 
-      const light = new THREE.PointLight(0xFFFFAA, 0, 50);
+      const light = new THREE.SpotLight(0xFFEEDD, 0);
       light.position.set(xSign * -1.5, 14, 0);
+      light.target.position.set(xSign * -15, 0, 0); // Aim at the road
+      light.angle = Math.PI / 2.5; // Wide cone
+      light.penumbra = 0.5; // Soft edges
+      light.distance = 100;
+      light.decay = 1.5;
+      
       group.add(light);
+      group.add(light.target);
 
       group.userData.light = light;
 
@@ -328,7 +339,7 @@ export class Environment {
     let bulbColor = 0x444444;
     if (this.state.time === 'evening' || this.state.time === 'night' || this.state.time === 'midnight' || 
         this.state.weather === 'storm' || this.state.weather === 'rain' || this.state.weather === 'fog') {
-      streetLightIntensity = 1.0;
+      streetLightIntensity = 15.0; // High intensity for realistic asphalt illumination
       bulbColor = 0xFFFFAA; // Warm glow
     }
     

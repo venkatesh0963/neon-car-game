@@ -27,9 +27,9 @@ export class TrafficManager {
     const colorHex = this.CAR_COLORS[Math.floor(Math.random() * this.CAR_COLORS.length)];
 
     // Materials
-    const bodyMat = new THREE.MeshLambertMaterial({ color: colorHex });
-    const glassMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
-    const rubberMat = new THREE.MeshLambertMaterial({ color: 0x050505 });
+    const bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.3, metalness: 0.6 });
+    const glassMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, metalness: 0.9 });
+    const rubberMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
     const tailMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
     // Chassis
