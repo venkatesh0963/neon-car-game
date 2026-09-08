@@ -9,7 +9,7 @@ export class Environment {
     
     // State
     this.state = {
-      time: 'night',
+      time: 'noon',
       season: 'summer',
       weather: 'clear'
     };

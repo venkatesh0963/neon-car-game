@@ -24,38 +24,55 @@ export class TrafficManager {
 
   createVehicle() {
     const mesh = new THREE.Group();
-    
     const colorHex = this.CAR_COLORS[Math.floor(Math.random() * this.CAR_COLORS.length)];
 
-    // Solid Body
-    const bodyGeo = new THREE.BoxGeometry(2.5, 1.2, 5);
-    const bodyMat = new THREE.MeshLambertMaterial({ 
-      color: colorHex
-    });
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
-    body.position.y = 0.6;
-    body.castShadow = true;
-    body.receiveShadow = true;
-    
-    // Glowing LED Accents matching the body color
-    const accentGeo = new THREE.BoxGeometry(2.6, 0.1, 5.1);
-    const accentMat = new THREE.MeshBasicMaterial({ 
-      color: colorHex
-    });
-    const accent = new THREE.Mesh(accentGeo, accentMat);
-    accent.position.y = 0.3;
+    // Materials
+    const bodyMat = new THREE.MeshLambertMaterial({ color: colorHex });
+    const glassMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+    const rubberMat = new THREE.MeshLambertMaterial({ color: 0x050505 });
+    const tailMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 
-    // Detection Box Outline (will be colored dynamically)
-    const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(3.0, 1.6, 5.6));
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x5AB3FF, transparent: true, opacity: 0.8 });
-    const detectionBox = new THREE.LineSegments(edges, lineMat);
-    detectionBox.position.y = 0.6;
+    // Chassis
+    const chassisGeo = new THREE.BoxGeometry(2.4, 0.7, 4.8);
+    const chassis = new THREE.Mesh(chassisGeo, bodyMat);
+    chassis.position.y = 0.5;
+    chassis.castShadow = true;
+    chassis.receiveShadow = true;
+    mesh.add(chassis);
 
-    mesh.add(body);
-    mesh.add(accent);
-    mesh.add(detectionBox);
+    // Cabin
+    const cabinGeo = new THREE.BoxGeometry(1.8, 0.6, 2.4);
+    const cabin = new THREE.Mesh(cabinGeo, glassMat);
+    cabin.position.set(0, 1.15, -0.2);
+    cabin.castShadow = true;
+    mesh.add(cabin);
 
-    mesh.userData.detectionBox = lineMat; // Store reference to update color
+    // Wheels
+    const createWheel = (x, z) => {
+      const tireGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.3, 12);
+      const tire = new THREE.Mesh(tireGeo, rubberMat);
+      tire.rotation.z = Math.PI / 2;
+      tire.position.set(x, 0.35, z);
+      tire.castShadow = true;
+      return tire;
+    };
+    mesh.add(createWheel(1.25, -1.5));
+    mesh.add(createWheel(-1.25, -1.5));
+    mesh.add(createWheel(1.25, 1.5));
+    mesh.add(createWheel(-1.25, 1.5));
+
+    // Taillights
+    const tlGeo = new THREE.BoxGeometry(0.6, 0.2, 0.1);
+    const tlR = new THREE.Mesh(tlGeo, tailMat);
+    tlR.position.set(0.8, 0.6, 2.41);
+    mesh.add(tlR);
+    const tlL = new THREE.Mesh(tlGeo, tailMat);
+    tlL.position.set(-0.8, 0.6, 2.41);
+    mesh.add(tlL);
+
+    // Create a dummy detection box object since update logic expects one
+    // But we don't add it to the mesh so it remains invisible
+    mesh.userData.detectionBox = { color: { setHex: () => {} } };
 
     return mesh;
   }
