@@ -26,13 +26,13 @@ export class Player {
     
     const glassMat = new THREE.MeshStandardMaterial({
       color: 0x000000,
-      roughness: 0.0,
-      metalness: 1.0,
+      roughness: 0.1,
+      metalness: 0.9,
       transparent: true,
-      opacity: 0.7
+      opacity: 0.85 // Heavily tinted black glass
     });
     
-    const rubberMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+    const rubberMat = new THREE.MeshStandardMaterial({ color: 0x000000, roughness: 0.9 });
     const rimMat = new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.2 });
     const headlightMat = new THREE.MeshBasicMaterial({ color: 0xffffee });
     const taillightMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
