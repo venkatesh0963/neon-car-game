@@ -33,6 +33,7 @@ export class Environment {
     this.initTerrain();
     this.initRoad();
     this.initScenery();
+    this.initStreetLights();
     this.initParticles();
     
     this.applyState();
@@ -132,6 +133,50 @@ export class Environment {
       mountain.rotation.y = Math.random() * Math.PI;
       this.scene.add(mountain);
       this.mountains.push(mountain);
+    }
+  }
+
+  initStreetLights() {
+    this.streetLights = [];
+    this.poleMat = new THREE.MeshLambertMaterial({ color: 0x333333 });
+    this.bulbMat = new THREE.MeshBasicMaterial({ color: 0x444444 });
+
+    const poleGeo = new THREE.CylinderGeometry(0.2, 0.3, 15);
+    const headGeo = new THREE.BoxGeometry(4, 0.5, 1);
+    const planeGeo = new THREE.PlaneGeometry(3.5, 0.8);
+
+    for(let i=0; i<10; i++) {
+      const group = new THREE.Group();
+      
+      const pole = new THREE.Mesh(poleGeo, this.poleMat);
+      pole.position.y = 7.5;
+      group.add(pole);
+      
+      const isRight = i % 2 === 0;
+      const xSign = isRight ? 1 : -1;
+      
+      const head = new THREE.Mesh(headGeo, this.poleMat);
+      head.position.y = 15;
+      head.position.x = xSign * -1.5; 
+      group.add(head);
+
+      const bulb = new THREE.Mesh(planeGeo, this.bulbMat);
+      bulb.rotation.x = Math.PI / 2;
+      bulb.position.y = 14.7;
+      bulb.position.x = xSign * -1.5;
+      group.add(bulb);
+
+      const light = new THREE.PointLight(0xFFFFAA, 0, 50);
+      light.position.set(xSign * -1.5, 14, 0);
+      group.add(light);
+
+      group.userData.light = light;
+
+      group.position.x = xSign * 18;
+      group.position.z = -i * 80;
+      
+      this.scene.add(group);
+      this.streetLights.push(group);
     }
   }
 
@@ -277,6 +322,18 @@ export class Environment {
 
     this.targetCelestialColor.setHex(celestialColor);
     this.targetCelestialPos.set(0, celestialY, -400);
+
+    // 5. Resolve Street Lights
+    let streetLightIntensity = 0;
+    let bulbColor = 0x444444;
+    if (this.state.time === 'evening' || this.state.time === 'night' || this.state.time === 'midnight' || 
+        this.state.weather === 'storm' || this.state.weather === 'rain' || this.state.weather === 'fog') {
+      streetLightIntensity = 1.0;
+      bulbColor = 0xFFFFAA; // Warm glow
+    }
+    
+    this.targetStreetLightIntensity = streetLightIntensity;
+    this.targetBulbColor = new THREE.Color(bulbColor);
   }
 
   // --- UPDATE LOOP ---
@@ -350,6 +407,16 @@ export class Environment {
       if (mountain.position.z > 100) {
         mountain.position.z -= 600;
         mountain.position.x = (Math.random() > 0.5 ? 1 : -1) * (150 + Math.random() * 150);
+      }
+    }
+
+    // Street Lights
+    this.bulbMat.color.lerp(this.targetBulbColor, lerpSpeed);
+    for(let sl of this.streetLights) {
+      sl.userData.light.intensity = THREE.MathUtils.lerp(sl.userData.light.intensity, this.targetStreetLightIntensity, lerpSpeed);
+      sl.position.z += movement;
+      if (sl.position.z > 20) {
+        sl.position.z -= 800; // loop back
       }
     }
   }
