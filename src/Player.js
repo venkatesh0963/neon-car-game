@@ -12,7 +12,6 @@ export class Player {
     this.canChangeLane = true;
     
     this.initVehicle();
-    this.initAIPath();
   }
 
   initVehicle() {
@@ -202,9 +201,6 @@ export class Player {
     // Tilt while turning
     const tilt = (this.targetX - this.mesh.position.x) * -0.05;
     this.mesh.rotation.z = THREE.MathUtils.lerp(this.mesh.rotation.z, tilt, dt * 15);
-
-    // Update AI Path position to match target lane smoothly
-    this.pathGroup.position.x = THREE.MathUtils.lerp(this.pathGroup.position.x, this.targetX, dt * 8);
     
     // Update bounding box
     this.box.setFromObject(this.mesh);
