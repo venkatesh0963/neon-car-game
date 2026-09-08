@@ -29,10 +29,10 @@ app.appendChild(renderer.domElement);
 // Post-processing Bloom
 const renderScene = new RenderPass(scene, camera);
 // Resolution, strength, radius, threshold
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.4);
-bloomPass.strength = 0.5;
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.9);
+bloomPass.strength = 0.3;
 bloomPass.radius = 0.5;
-bloomPass.threshold = 0.4;
+bloomPass.threshold = 0.9;
 
 const outputPass = new OutputPass();
 

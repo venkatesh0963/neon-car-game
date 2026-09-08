@@ -216,7 +216,7 @@ export class Environment {
     let sky = 0x87CEEB, fog = 0x87CEEB, amb = 0xffffff, intens = 1.0;
     switch(this.state.time) {
       case 'morning': sky = 0xA2C2E1; fog = 0xD4E6F1; amb = 0xFFD700; intens = 0.8; break;
-      case 'noon': sky = 0x00BFFF; fog = 0x87CEEB; amb = 0xFFFFFF; intens = 1.2; break;
+      case 'noon': sky = 0x87CEFA; fog = 0x9ECBEB; amb = 0xDDDDDD; intens = 0.9; break;
       case 'evening': sky = 0xFF7E00; fog = 0xFFB347; amb = 0xFF9500; intens = 0.7; break;
       case 'night': sky = 0x050A1A; fog = 0x00BFFF; amb = 0x00A2FF; intens = 0.3; break;
       case 'midnight': sky = 0x000000; fog = 0x050A1A; amb = 0x111111; intens = 0.1; break;
