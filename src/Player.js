@@ -20,7 +20,7 @@ export class Player {
     
     // Materials
     const paintMat = new THREE.MeshStandardMaterial({ 
-      color: 0x111111, // Dark grey/black paint
+      color: 0xffffff, // White paint
       roughness: 0.1,
       metalness: 0.8,
     });
