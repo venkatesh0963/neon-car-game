@@ -53,6 +53,8 @@ export class Environment {
     this.dirLight.shadow.camera.bottom = -100;
     this.dirLight.shadow.camera.left = -100;
     this.dirLight.shadow.camera.right = 100;
+    this.dirLight.shadow.mapSize.width = 2048;
+    this.dirLight.shadow.mapSize.height = 2048;
     this.scene.add(this.dirLight);
   }
 
@@ -111,6 +113,22 @@ export class Environment {
     road.position.y = -0.1;
     road.receiveShadow = true;
     this.scene.add(road);
+
+    // Sidewalks
+    const sidewalkGeo = new THREE.PlaneGeometry(4, this.roadLength);
+    const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x666666 });
+    
+    this.sidewalkL = new THREE.Mesh(sidewalkGeo, sidewalkMat);
+    this.sidewalkL.rotation.x = -Math.PI / 2;
+    this.sidewalkL.position.set(-this.roadWidth / 2 - 2, -0.05, -this.roadLength / 2 + 50);
+    this.sidewalkL.receiveShadow = true;
+    this.scene.add(this.sidewalkL);
+
+    this.sidewalkR = new THREE.Mesh(sidewalkGeo, sidewalkMat);
+    this.sidewalkR.rotation.x = -Math.PI / 2;
+    this.sidewalkR.position.set(this.roadWidth / 2 + 2, -0.05, -this.roadLength / 2 + 50);
+    this.sidewalkR.receiveShadow = true;
+    this.scene.add(this.sidewalkR);
 
     this.laneDividers = [];
     const dividerGeo = new THREE.BoxGeometry(0.3, 0.1, 4);
@@ -281,7 +299,7 @@ export class Environment {
 
     const building = new THREE.Mesh(geo, materials);
     building.position.y = height / 2;
-    building.castShadow = true;
+    building.castShadow = false; // Prevent huge blocky shadows on the road
     building.receiveShadow = true;
     
     item.mesh.add(building);
