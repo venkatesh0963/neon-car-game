@@ -13,6 +13,8 @@ export class Environment {
       season: 'summer',
       weather: 'clear'
     };
+    
+    this.biome = 'nature';
 
     // Interpolation Targets
     this.targets = {
@@ -120,10 +122,11 @@ export class Environment {
 
   initScenery() {
     for(let i=0; i<60; i++) {
-      const tree = this.createTree();
-      this.resetSceneryObject(tree, true);
-      this.scene.add(tree);
-      this.sceneryObjects.push({ mesh: tree, type: 'tree' });
+      const item = { mesh: new THREE.Group(), type: 'none' };
+      this.morphToTree(item);
+      this.resetSceneryObject(item.mesh, true);
+      this.scene.add(item.mesh);
+      this.sceneryObjects.push(item);
     }
 
     const mountainGeo = new THREE.ConeGeometry(80, 150, 4);
@@ -191,8 +194,36 @@ export class Environment {
     }
   }
 
-  createTree() {
-    const group = new THREE.Group();
+  morphToBuilding(item) {
+    if (item.type === 'building') return;
+    
+    while(item.mesh.children.length > 0){ 
+        item.mesh.remove(item.mesh.children[0]); 
+    }
+    
+    const width = 10 + Math.random() * 20;
+    const height = 40 + Math.random() * 100;
+    const depth = 10 + Math.random() * 20;
+    
+    const geo = new THREE.BoxGeometry(width, height, depth);
+    // Gray/Glassy looking buildings
+    const color = new THREE.Color().setHSL(0, 0, 0.2 + Math.random() * 0.4);
+    const mat = new THREE.MeshLambertMaterial({ color: color });
+    const building = new THREE.Mesh(geo, mat);
+    building.position.y = height / 2;
+    building.castShadow = true;
+    
+    item.mesh.add(building);
+    item.type = 'building';
+  }
+
+  morphToTree(item) {
+    if (item.type === 'tree') return;
+    
+    while(item.mesh.children.length > 0){ 
+        item.mesh.remove(item.mesh.children[0]); 
+    }
+    
     const trunkGeo = new THREE.CylinderGeometry(0.5, 0.5, 2);
     const trunkMat = new THREE.MeshLambertMaterial({ color: 0x3d2817 });
     const trunk = new THREE.Mesh(trunkGeo, trunkMat);
@@ -200,22 +231,25 @@ export class Environment {
     trunk.castShadow = true;
     
     const leavesGeo = new THREE.ConeGeometry(3, 6, 5);
-    const leavesMat = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+    const leavesMat = new THREE.MeshLambertMaterial({ color: this.targetLeafColor || 0x228B22 });
     const leaves = new THREE.Mesh(leavesGeo, leavesMat);
     leaves.position.y = 4;
     leaves.castShadow = true;
     
-    group.add(trunk);
-    group.add(leaves);
+    item.mesh.add(trunk);
+    item.mesh.add(leaves);
     
-    // Store reference to leaves material to change colors later
-    group.userData.leavesMat = leavesMat;
-    return group;
+    item.mesh.userData.leavesMat = leavesMat;
+    item.type = 'tree';
+  }
+
+  setBiome(biome) {
+    this.biome = biome;
   }
 
   resetSceneryObject(obj, initial = false) {
     const side = Math.random() > 0.5 ? 1 : -1;
-    const distanceFromBody = 20 + Math.random() * 80;
+    const distanceFromBody = this.biome === 'city' ? 40 + Math.random() * 80 : 20 + Math.random() * 80;
     obj.position.x = side * distanceFromBody;
     if (initial) {
       obj.position.z = 50 - Math.random() * this.roadLength;
@@ -408,13 +442,26 @@ export class Environment {
       item.mesh.position.z += movement;
       if (item.mesh.position.z > 50) {
         this.resetSceneryObject(item.mesh);
+        
+        if (this.biome === 'city') {
+          this.morphToBuilding(item);
+        } else {
+          this.morphToTree(item);
+        }
+
         // Instant color update on reset to prevent mismatched colors coming into view
-        item.mesh.userData.leavesMat.color.copy(this.targetLeafColor);
+        if (item.type === 'tree') {
+          item.mesh.userData.leavesMat.color.copy(this.targetLeafColor);
+        }
       }
     }
 
     for(let mountain of this.mountains) {
       mountain.position.z += movement * 0.1;
+      
+      const targetY = this.biome === 'city' ? -200 : 50;
+      mountain.position.y = THREE.MathUtils.lerp(mountain.position.y, targetY, dt * 2.0);
+
       if (mountain.position.z > 100) {
         mountain.position.z -= 600;
         mountain.position.x = (Math.random() > 0.5 ? 1 : -1) * (150 + Math.random() * 150);
