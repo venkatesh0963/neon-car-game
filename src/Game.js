@@ -173,7 +173,7 @@ export class Game {
     this.distance += (this.speed / 10) * dt;
     
     const currentBiome = Math.floor(this.distance / 500) % 2 === 0 ? 'nature' : 'city';
-    this.environment.setBiome(currentBiome);
+    this.env.setBiome(currentBiome);
 
     this.ui.score.innerText = Math.floor(this.distance).toString().padStart(4, '0');
     this.ui.speed.innerText = Math.floor(this.speed).toString().padStart(3, '0');

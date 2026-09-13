@@ -148,17 +148,18 @@ export class Player {
     this.mesh.add(steeringWheel);
 
     // Set initial position
-    this.mesh.position.set(this.targetX, 0, 0);
+    // Set position AFTER calculating bounding box offset to avoid un-updated matrix issues
     this.scene.add(this.mesh);
 
-    // Bounding box for collisions - Optimized
     const tempBox = new THREE.Box3().setFromObject(this.mesh);
     this.carSize = new THREE.Vector3();
     tempBox.getSize(this.carSize);
     this.carSize.subScalar(0.6); // Leniency
     
     this.carCenterOffset = new THREE.Vector3();
-    tempBox.getCenter(this.carCenterOffset).sub(this.mesh.position);
+    tempBox.getCenter(this.carCenterOffset); // Since mesh is at 0,0,0, center is the offset
+    
+    this.mesh.position.set(this.targetX, 0, 0);
     
     this.box = new THREE.Box3();
   }

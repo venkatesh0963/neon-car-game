@@ -79,16 +79,18 @@ export class TrafficManager {
 
   spawnVehicle() {
     const v = this.createVehicle();
-    const laneIndex = Math.floor(Math.random() * 3);
-    v.position.set(this.lanes[laneIndex], 0, -300); // spawn far ahead
-    
+    // Calculate bounding box offset while vehicle is at 0,0,0
     const tempBox = new THREE.Box3().setFromObject(v);
     const size = new THREE.Vector3();
     tempBox.getSize(size);
     size.subScalar(0.6); // Leniency
     
     const centerOffset = new THREE.Vector3();
-    tempBox.getCenter(centerOffset).sub(v.position);
+    tempBox.getCenter(centerOffset);
+    
+    // Now move it to its spawn location
+    const laneIndex = Math.floor(Math.random() * 3);
+    v.position.set(this.lanes[laneIndex], 0, -300); // spawn far ahead
 
     this.scene.add(v);
     this.vehicles.push({ 
