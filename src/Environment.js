@@ -76,17 +76,25 @@ export class Environment {
     const grassGeo = new THREE.PlaneGeometry(400, this.roadLength);
     this.grassMat = new THREE.MeshLambertMaterial({ color: 0x00C853 });
     
-    const grassL = new THREE.Mesh(grassGeo, this.grassMat);
-    grassL.rotation.x = -Math.PI / 2;
-    grassL.position.set(-215, -0.2, -this.roadLength / 2 + 50);
-    grassL.receiveShadow = true;
-    this.scene.add(grassL);
+    this.grassL = new THREE.Mesh(grassGeo, this.grassMat);
+    this.grassL.rotation.x = -Math.PI / 2;
+    this.grassL.position.set(-215, -0.2, -this.roadLength / 2 + 50);
+    this.grassL.receiveShadow = true;
+    this.scene.add(this.grassL);
 
-    const grassR = new THREE.Mesh(grassGeo, this.grassMat);
-    grassR.rotation.x = -Math.PI / 2;
-    grassR.position.set(215, -0.2, -this.roadLength / 2 + 50);
-    grassR.receiveShadow = true;
-    this.scene.add(grassR);
+    this.grassR = new THREE.Mesh(grassGeo, this.grassMat);
+    this.grassR.rotation.x = -Math.PI / 2;
+    this.grassR.position.set(215, -0.2, -this.roadLength / 2 + 50);
+    this.grassR.receiveShadow = true;
+    this.scene.add(this.grassR);
+    
+    // Ocean plane for beach biome
+    const oceanGeo = new THREE.PlaneGeometry(400, this.roadLength);
+    this.oceanMat = new THREE.MeshLambertMaterial({ color: 0x1ca3ec });
+    this.oceanL = new THREE.Mesh(oceanGeo, this.oceanMat);
+    this.oceanL.rotation.x = -Math.PI / 2;
+    this.oceanL.position.set(-300, -10, -this.roadLength / 2 + 50); // Starts hidden below ground
+    this.scene.add(this.oceanL);
   }
 
   initRoad() {
@@ -319,8 +327,58 @@ export class Environment {
     item.type = 'tree';
   }
 
+  morphToPalmTree(item) {
+    if (item.type === 'palm') return;
+    
+    while(item.mesh.children.length > 0){ 
+        item.mesh.remove(item.mesh.children[0]); 
+    }
+    
+    const height = 10 + Math.random() * 8;
+    const trunkGeo = new THREE.CylinderGeometry(0.3, 0.6, height, 5);
+    
+    // Curve the trunk
+    const posAttribute = trunkGeo.attributes.position;
+    const bendDir = Math.random() > 0.5 ? 1 : -1;
+    for (let i = 0; i < posAttribute.count; i++) {
+        const y = posAttribute.getY(i);
+        const normalizedY = (y + height / 2) / height;
+        const bend = Math.pow(normalizedY, 2) * 2.0 * bendDir;
+        posAttribute.setX(i, posAttribute.getX(i) + bend);
+    }
+    trunkGeo.computeVertexNormals();
+
+    const trunkMat = new THREE.MeshLambertMaterial({ color: 0x6b533d });
+    const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+    trunk.position.y = height / 2;
+    trunk.castShadow = true;
+    item.mesh.add(trunk);
+    
+    const leavesMat = new THREE.MeshLambertMaterial({ color: 0x4caf50, side: THREE.DoubleSide });
+    const numLeaves = 6 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < numLeaves; i++) {
+        const leafGeo = new THREE.PlaneGeometry(1.5, 6 + Math.random() * 2);
+        leafGeo.translate(0, leafGeo.parameters.height / 2, 0); // origin at bottom
+        
+        const leaf = new THREE.Mesh(leafGeo, leavesMat);
+        leaf.position.y = height - 0.5;
+        // Curve leaf out
+        leaf.rotation.x = Math.PI / 2.5 + Math.random() * 0.2;
+        // Rotate around trunk
+        leaf.rotation.y = (Math.PI * 2 / numLeaves) * i + Math.random();
+        
+        leaf.castShadow = true;
+        item.mesh.add(leaf);
+    }
+    
+    item.mesh.userData.leavesMat = leavesMat;
+    item.type = 'palm';
+  }
+
   setBiome(biome) {
+    if (this.biome === biome) return;
     this.biome = biome;
+    this.applyState();
   }
 
   resetSceneryObject(obj, initial = false) {
@@ -420,6 +478,14 @@ export class Environment {
       case 'winter': leafColor = 0xFFFFFF; grassColor = 0xE0FFFF; mountainColor = 0xFFFFFF; break;
     }
 
+    // Biome overrides
+    if (this.biome === 'beach') {
+      grassColor = 0xEEDC9A; // Sand color
+      leafColor = 0x4caf50; // Palm leaf color
+    } else if (this.biome === 'city') {
+      grassColor = 0x333333; // Concrete color
+    }
+
     this.targetGrassColor = new THREE.Color(grassColor);
     this.targetLeafColor = new THREE.Color(leafColor);
     this.targetMountainColor = new THREE.Color(mountainColor);
@@ -477,6 +543,10 @@ export class Environment {
     this.grassMat.color.lerp(this.targetGrassColor, lerpSpeed);
     this.mountainMat.color.lerp(this.targetMountainColor, lerpSpeed);
 
+    // Ocean animation
+    const targetOceanY = this.biome === 'beach' ? -0.1 : -10;
+    this.oceanL.position.y = THREE.MathUtils.lerp(this.oceanL.position.y, targetOceanY, dt * 1.5);
+
     for(let item of this.sceneryObjects) {
       if(item.type === 'tree') {
         item.mesh.userData.leavesMat.color.lerp(this.targetLeafColor, lerpSpeed);
@@ -521,6 +591,8 @@ export class Environment {
         
         if (this.biome === 'city') {
           this.morphToBuilding(item);
+        } else if (this.biome === 'beach') {
+          this.morphToPalmTree(item);
         } else {
           this.morphToTree(item);
         }
@@ -535,7 +607,7 @@ export class Environment {
     for(let mountain of this.mountains) {
       mountain.position.z += movement * 0.1;
       
-      const targetY = this.biome === 'city' ? -200 : 50;
+      const targetY = (this.biome === 'city' || this.biome === 'beach') ? -200 : 50;
       mountain.position.y = THREE.MathUtils.lerp(mountain.position.y, targetY, dt * 2.0);
 
       if (mountain.position.z > 100) {
