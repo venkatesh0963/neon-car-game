@@ -34,6 +34,7 @@ export class Environment {
     this.initCelestial();
     this.initTerrain();
     this.initRoad();
+    this.initBuildingMaterials();
     this.initScenery();
     this.initStreetLights();
     this.initParticles();
@@ -120,6 +121,59 @@ export class Environment {
     }
   }
 
+  initBuildingMaterials() {
+    this.buildingMats = [];
+    
+    const palettes = [
+      { base: '#3a3c42', win: '#1a252f', hl: '#4a4c52' },
+      { base: '#5b5752', win: '#2c221a', hl: '#6b6762' },
+      { base: '#d4d6d9', win: '#4e6275', hl: '#ffffff' },
+      { base: '#2b2b2b', win: '#3d3a1f', hl: '#3b3b3b' }
+    ];
+
+    for(let p of palettes) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      
+      ctx.fillStyle = p.base;
+      ctx.fillRect(0, 0, 256, 512);
+      
+      const rows = 16;
+      const cols = 8;
+      const winW = 20;
+      const winH = 22;
+      const gapX = (256 - (cols * winW)) / (cols + 1);
+      const gapY = (512 - (rows * winH)) / (rows + 1);
+      
+      for(let r=0; r<rows; r++) {
+        for(let c=0; c<cols; c++) {
+          ctx.fillStyle = Math.random() > 0.2 ? p.win : '#0a0a0a';
+          const x = gapX + c*(winW+gapX);
+          const y = gapY + r*(winH+gapY);
+          ctx.fillRect(x, y, winW, winH);
+          
+          ctx.fillStyle = p.hl;
+          ctx.fillRect(x, y, winW, 2);
+          ctx.fillRect(x, y, 2, winH);
+        }
+      }
+      
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      tex.anisotropy = 4;
+      
+      const mat = new THREE.MeshStandardMaterial({ 
+        map: tex, 
+        roughness: 0.5,
+        metalness: 0.3
+      });
+      this.buildingMats.push(mat);
+    }
+  }
+
   initScenery() {
     for(let i=0; i<60; i++) {
       const item = { mesh: new THREE.Group(), type: 'none' };
@@ -201,19 +255,41 @@ export class Environment {
         item.mesh.remove(item.mesh.children[0]); 
     }
     
-    const width = 10 + Math.random() * 20;
-    const height = 40 + Math.random() * 100;
-    const depth = 10 + Math.random() * 20;
+    const width = 15 + Math.random() * 25;
+    const height = 60 + Math.random() * 150;
+    const depth = 15 + Math.random() * 25;
     
     const geo = new THREE.BoxGeometry(width, height, depth);
-    // Gray/Glassy looking buildings
-    const color = new THREE.Color().setHSL(0, 0, 0.2 + Math.random() * 0.4);
-    const mat = new THREE.MeshLambertMaterial({ color: color });
-    const building = new THREE.Mesh(geo, mat);
+    const uvs = geo.attributes.uv;
+    for(let i=0; i<uvs.count; i++) {
+        let u = uvs.getX(i);
+        let v = uvs.getY(i);
+        uvs.setXY(i, u * (width / 20), v * (height / 20));
+    }
+
+    const mat = this.buildingMats[Math.floor(Math.random() * this.buildingMats.length)];
+    const roofBaseMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 });
+    const materials = [mat, mat, roofBaseMat, roofBaseMat, mat, mat];
+
+    const building = new THREE.Mesh(geo, materials);
     building.position.y = height / 2;
     building.castShadow = true;
+    building.receiveShadow = true;
     
     item.mesh.add(building);
+    
+    if (Math.random() > 0.5) {
+      const roofGeo = new THREE.BoxGeometry(width * 0.5, 5, depth * 0.5);
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+      const roof = new THREE.Mesh(roofGeo, roofMat);
+      roof.position.y = height + 2.5;
+      item.mesh.add(roof);
+    } else if (Math.random() > 0.5) {
+      const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 20), new THREE.MeshStandardMaterial({ color: 0x888888 }));
+      antenna.position.y = height + 10;
+      item.mesh.add(antenna);
+    }
+
     item.type = 'building';
   }
 
