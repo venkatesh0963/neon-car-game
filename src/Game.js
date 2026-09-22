@@ -172,7 +172,7 @@ export class Game {
     this.speed = Math.max(this.baseSpeed, Math.min(this.speed, this.maxSpeed));
     this.distance += (this.speed / 10) * dt;
     
-    const biomes = ['nature', 'city', 'beach'];
+    const biomes = ['nature', 'city', 'beach', 'bridge'];
     const currentBiome = biomes[Math.floor(this.distance / 500) % biomes.length];
     this.env.setBiome(currentBiome);
 

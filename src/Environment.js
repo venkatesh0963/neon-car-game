@@ -90,13 +90,19 @@ export class Environment {
     this.grassR.receiveShadow = true;
     this.scene.add(this.grassR);
     
-    // Ocean plane for beach biome
+    // Ocean planes
     const oceanGeo = new THREE.PlaneGeometry(400, this.roadLength);
     this.oceanMat = new THREE.MeshLambertMaterial({ color: 0x1ca3ec });
+    
     this.oceanL = new THREE.Mesh(oceanGeo, this.oceanMat);
     this.oceanL.rotation.x = -Math.PI / 2;
-    this.oceanL.position.set(-300, -10, -this.roadLength / 2 + 50); // Starts hidden below ground
+    this.oceanL.position.set(-300, -10, -this.roadLength / 2 + 50);
     this.scene.add(this.oceanL);
+
+    this.oceanR = new THREE.Mesh(oceanGeo, this.oceanMat);
+    this.oceanR.rotation.x = -Math.PI / 2;
+    this.oceanR.position.set(300, -10, -this.roadLength / 2 + 50);
+    this.scene.add(this.oceanR);
   }
 
   initRoad() {
@@ -393,6 +399,39 @@ export class Environment {
     item.type = 'palm';
   }
 
+  morphToPillar(item) {
+    if (item.type === 'pillar') return;
+    
+    while(item.mesh.children.length > 0){ 
+        item.mesh.remove(item.mesh.children[0]); 
+    }
+    
+    // Concrete pillar
+    const geo = new THREE.BoxGeometry(4, 100, 6);
+    const mat = new THREE.MeshLambertMaterial({ color: 0x888888 });
+    const pillar = new THREE.Mesh(geo, mat);
+    pillar.position.y = 40; 
+    pillar.castShadow = true;
+    item.mesh.add(pillar);
+    
+    // Suspension cable
+    const cableGeo = new THREE.CylinderGeometry(0.5, 0.5, 120);
+    const cableMat = new THREE.MeshLambertMaterial({ color: 0x222222 });
+    const cable = new THREE.Mesh(cableGeo, cableMat);
+    cable.position.y = 40;
+    cable.position.z = 30; // Extend backwards
+    cable.rotation.x = Math.PI / 6; // Angle down towards the road
+    item.mesh.add(cable);
+
+    const cable2 = new THREE.Mesh(cableGeo, cableMat);
+    cable2.position.y = 40;
+    cable2.position.z = -30; // Extend forwards
+    cable2.rotation.x = -Math.PI / 6;
+    item.mesh.add(cable2);
+    
+    item.type = 'pillar';
+  }
+
   setBiome(biome) {
     if (this.biome === biome) return;
     this.biome = biome;
@@ -401,7 +440,14 @@ export class Environment {
 
   resetSceneryObject(obj, initial = false) {
     const side = Math.random() > 0.5 ? 1 : -1;
-    const distanceFromBody = this.biome === 'city' ? 40 + Math.random() * 80 : 20 + Math.random() * 80;
+    let distanceFromBody = 20 + Math.random() * 80;
+    
+    if (this.biome === 'city') {
+      distanceFromBody = 40 + Math.random() * 80;
+    } else if (this.biome === 'bridge') {
+      distanceFromBody = 20; // Fixed distance directly adjacent to the road
+    }
+    
     obj.position.x = side * distanceFromBody;
     if (initial) {
       obj.position.z = 50 - Math.random() * this.roadLength;
@@ -561,9 +607,32 @@ export class Environment {
     this.grassMat.color.lerp(this.targetGrassColor, lerpSpeed);
     this.mountainMat.color.lerp(this.targetMountainColor, lerpSpeed);
 
-    // Ocean animation
-    const targetOceanY = this.biome === 'beach' ? -0.1 : -10;
-    this.oceanL.position.y = THREE.MathUtils.lerp(this.oceanL.position.y, targetOceanY, dt * 1.5);
+    // Ocean and Ground animation
+    let targetOceanLY = -10;
+    let targetOceanRY = -10;
+    let targetOceanLX = -300;
+    let targetOceanRX = 300;
+    let targetGrassY = -0.2;
+
+    if (this.biome === 'beach') {
+      targetOceanLY = -0.1;
+      targetOceanLX = -300;
+    } else if (this.biome === 'bridge') {
+      targetOceanLY = -0.15;
+      targetOceanRY = -0.15;
+      targetOceanLX = -215; // Shift to road edge
+      targetOceanRX = 215;  // Shift to road edge
+      targetGrassY = -10;   // Hide grass completely
+    }
+
+    this.oceanL.position.y = THREE.MathUtils.lerp(this.oceanL.position.y, targetOceanLY, dt * 1.5);
+    this.oceanL.position.x = THREE.MathUtils.lerp(this.oceanL.position.x, targetOceanLX, dt * 1.5);
+    
+    this.oceanR.position.y = THREE.MathUtils.lerp(this.oceanR.position.y, targetOceanRY, dt * 1.5);
+    this.oceanR.position.x = THREE.MathUtils.lerp(this.oceanR.position.x, targetOceanRX, dt * 1.5);
+    
+    this.grassL.position.y = THREE.MathUtils.lerp(this.grassL.position.y, targetGrassY, dt * 1.5);
+    this.grassR.position.y = THREE.MathUtils.lerp(this.grassR.position.y, targetGrassY, dt * 1.5);
 
     for(let item of this.sceneryObjects) {
       if(item.type === 'tree') {
@@ -611,6 +680,8 @@ export class Environment {
           this.morphToBuilding(item);
         } else if (this.biome === 'beach') {
           this.morphToPalmTree(item);
+        } else if (this.biome === 'bridge') {
+          this.morphToPillar(item);
         } else {
           this.morphToTree(item);
         }
@@ -625,7 +696,7 @@ export class Environment {
     for(let mountain of this.mountains) {
       mountain.position.z += movement * 0.1;
       
-      const targetY = (this.biome === 'city' || this.biome === 'beach') ? -200 : 50;
+      const targetY = (this.biome === 'city' || this.biome === 'beach' || this.biome === 'bridge') ? -200 : 50;
       mountain.position.y = THREE.MathUtils.lerp(mountain.position.y, targetY, dt * 2.0);
 
       if (mountain.position.z > 100) {
