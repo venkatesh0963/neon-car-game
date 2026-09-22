@@ -59,6 +59,7 @@ export class Environment {
     this.dirLight.shadow.camera.right = 100;
     this.dirLight.shadow.mapSize.width = 2048;
     this.dirLight.shadow.mapSize.height = 2048;
+    this.dirLight.shadow.bias = -0.001;
     this.scene.add(this.dirLight);
   }
 
@@ -85,7 +86,7 @@ export class Environment {
     this.targetCurveAmount = 0;
     this.curveTimer = 0;
 
-    const grassGeo = new THREE.PlaneGeometry(400, this.roadLength, 1, 60);
+    const grassGeo = new THREE.PlaneGeometry(400, this.roadLength, 32, 60);
     this.grassMat = new THREE.MeshLambertMaterial({ color: 0x00C853 });
     
     this.grassL = new THREE.Mesh(grassGeo, this.grassMat);
@@ -101,7 +102,7 @@ export class Environment {
     this.scene.add(this.grassR);
     
     // Ocean planes
-    const oceanGeo = new THREE.PlaneGeometry(400, this.roadLength, 1, 60);
+    const oceanGeo = new THREE.PlaneGeometry(400, this.roadLength, 16, 60);
     this.oceanMat = new THREE.MeshLambertMaterial({ color: 0x1ca3ec });
     
     this.oceanL = new THREE.Mesh(oceanGeo, this.oceanMat);
@@ -116,7 +117,8 @@ export class Environment {
   }
 
   initRoad() {
-    const roadGeometry = new THREE.PlaneGeometry(this.roadWidth, this.roadLength, 1, 60);
+    // Increased width segments from 1 to 16 to prevent diagonal shading artifacts when curving
+    const roadGeometry = new THREE.PlaneGeometry(this.roadWidth, this.roadLength, 16, 60);
     const roadMaterial = new THREE.MeshStandardMaterial({ 
       color: 0x1A1A1A,
       roughness: 0.8,
@@ -131,7 +133,7 @@ export class Environment {
     this.scene.add(this.road);
 
     // Sidewalks
-    const sidewalkGeo = new THREE.PlaneGeometry(4, this.roadLength, 1, 60);
+    const sidewalkGeo = new THREE.PlaneGeometry(4, this.roadLength, 4, 60);
     const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x666666 });
     
     this.sidewalkL = new THREE.Mesh(sidewalkGeo, sidewalkMat);
