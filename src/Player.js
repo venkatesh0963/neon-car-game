@@ -202,7 +202,7 @@ export class Player {
   }
 
   update(dt) {
-    this.handleInput();
+    this.handleInput(dt);
     
     // Smooth transition to target lane
     this.mesh.position.x = THREE.MathUtils.lerp(this.mesh.position.x, this.targetX, dt * 10);
@@ -216,23 +216,27 @@ export class Player {
     this.box.setFromCenterAndSize(center, this.carSize);
   }
 
-  handleInput() {
-    if ((this.input.keys.left || this.input.consumeSwipeLeft()) && this.canChangeLane) {
-      if (this.currentLane > 0) {
-        this.currentLane--;
-        this.targetX = this.lanes[this.currentLane];
-      }
-      this.canChangeLane = false;
-    } else if ((this.input.keys.right || this.input.consumeSwipeRight()) && this.canChangeLane) {
-      if (this.currentLane < 2) {
-        this.currentLane++;
-        this.targetX = this.lanes[this.currentLane];
-      }
-      this.canChangeLane = false;
+  handleInput(dt) {
+    const steerSpeed = 25; // units per second
+    
+    // Keyboard / D-Pad continuous steering
+    if (this.input.keys.left) {
+      this.targetX += steerSpeed * dt;
+    } 
+    if (this.input.keys.right) {
+      this.targetX -= steerSpeed * dt;
     }
 
-    if (!this.input.keys.left && !this.input.keys.right) {
-      this.canChangeLane = true;
+    // Retain screen taps for small nudges (mobile fallback)
+    if (this.input.consumeSwipeLeft()) {
+      this.targetX += 3.0; // Nudge left
     }
+    if (this.input.consumeSwipeRight()) {
+      this.targetX -= 3.0; // Nudge right
+    }
+
+    // Clamp to road bounds (Road width is 30, from -15 to +15)
+    // Car width is ~2, so we clamp slightly inside the edges
+    this.targetX = Math.max(-13.5, Math.min(13.5, this.targetX));
   }
 }
