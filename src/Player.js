@@ -56,8 +56,8 @@ export class Player {
     
     const rubberMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
     const rimMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.9, roughness: 0.2 });
-    const headlightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const taillightMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const headlightMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 4, 4) });
+    const taillightMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 0, 0) });
     const grilleMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.8 });
     const dashMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.8 });
 

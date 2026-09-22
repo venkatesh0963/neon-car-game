@@ -30,7 +30,8 @@ export class TrafficManager {
     const bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.3, metalness: 0.6 });
     const glassMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1, metalness: 0.9 });
     const rubberMat = new THREE.MeshStandardMaterial({ color: 0x050505, roughness: 0.9 });
-    const tailMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const tailMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 0, 0) });
+    const headlightMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(4, 4, 4) });
 
     // Chassis
     const chassisGeo = new THREE.BoxGeometry(2.4, 0.7, 4.8);

@@ -444,7 +444,7 @@ export class Environment {
       const signMat = new THREE.MeshStandardMaterial({ 
         color: 0x111111,
         emissive: new THREE.Color(sColor),
-        emissiveIntensity: 0.6
+        emissiveIntensity: 2.5 // Increased to ensure it glows over the 1.5 threshold
       });
       const sign = new THREE.Mesh(signGeo, signMat);
       sign.position.y = 5; // Above the ground floor
