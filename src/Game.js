@@ -97,7 +97,14 @@ export class Game {
         e.target.classList.add('active');
 
         // Call environment methods
-        if (type === 'time') this.env.setTime(val);
+        if (type === 'time') {
+          this.env.setTime(val);
+          // If auto, re-highlight current time state
+          if (val === 'auto') {
+             const currentBtn = Array.from(groupBtns).find(b => b.getAttribute('data-val') === this.env.state.time);
+             if (currentBtn) currentBtn.classList.add('active');
+          }
+        }
         if (type === 'season') this.env.setSeason(val);
         if (type === 'weather') this.env.setWeather(val);
         if (type === 'theme') this.env.setTheme(val);

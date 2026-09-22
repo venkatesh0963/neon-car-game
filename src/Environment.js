@@ -9,10 +9,14 @@ export class Environment {
     
     // State
     this.state = {
-      time: 'noon',
+      time: 'morning', // start at morning for the cycle
       season: 'summer',
       weather: 'clear'
     };
+    
+    this.dayCycleEnabled = true;
+    this.dayCycleTimer = 0;
+    this.timePhases = ['morning', 'noon', 'evening', 'night', 'midnight'];
     
     this.biome = 'nature';
 
@@ -620,7 +624,16 @@ export class Environment {
 
   // --- PUBLIC CONTROL METHODS ---
 
-  setTime(time) {
+  setTime(time, manual = true) {
+    if (time === 'auto') {
+      this.dayCycleEnabled = true;
+      return;
+    }
+    
+    if (manual) {
+      this.dayCycleEnabled = false;
+    }
+    
     this.state.time = time;
     this.applyState();
   }
@@ -729,6 +742,24 @@ export class Environment {
   // --- UPDATE LOOP ---
 
   update(speed, dt) {
+    if (this.dayCycleEnabled) {
+      this.dayCycleTimer += dt;
+      // Change time every 15 seconds
+      if (this.dayCycleTimer > 15) {
+        this.dayCycleTimer = 0;
+        let currentIndex = this.timePhases.indexOf(this.state.time);
+        let nextIndex = (currentIndex + 1) % this.timePhases.length;
+        this.setTime(this.timePhases[nextIndex], false); // manual = false
+        
+        // Also update UI to show which phase we are in (if UI buttons exist)
+        const ctrlBtns = document.querySelectorAll('.ctrl-btn[data-type="time"]');
+        ctrlBtns.forEach(btn => {
+          if (btn.getAttribute('data-val') === this.state.time) btn.classList.add('active');
+          else if (btn.getAttribute('data-val') !== 'auto') btn.classList.remove('active');
+        });
+      }
+    }
+
     // Lerp Environment Colors (Smooth 2-5 sec transitions)
     const lerpSpeed = dt * 1.0; // adjust for speed
     
