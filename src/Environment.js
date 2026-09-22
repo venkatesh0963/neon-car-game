@@ -68,14 +68,16 @@ export class Environment {
   }
 
   initCelestial() {
-    const celestialGeo = new THREE.SphereGeometry(30, 32, 32);
+    const celestialGeo = new THREE.SphereGeometry(100, 32, 32); // Increased size heavily
     this.celestialMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, fog: false });
     this.celestial = new THREE.Mesh(celestialGeo, this.celestialMat);
-    this.celestial.position.set(0, 150, -400);
+    // Render behind everything, just in case
+    this.celestial.renderOrder = -1;
+    this.celestial.position.set(0, 300, -2000); // Pushed WAY back behind all buildings
     this.scene.add(this.celestial);
     
     this.targetCelestialColor = new THREE.Color(0xFFFFFF);
-    this.targetCelestialPos = new THREE.Vector3(0, 150, -400);
+    this.targetCelestialPos = new THREE.Vector3(0, 300, -2000);
   }
 
   initTerrain() {
@@ -708,23 +710,34 @@ export class Environment {
 
     // 4. Resolve Celestial Body
     let celestialColor = 0xFFFFFF;
-    let celestialY = 150;
+    let celestialY = 500;
+    let celestialX = 0;
     
+    // Create a smooth realistic arc across the sky
     switch(this.state.time) {
-      case 'morning': celestialColor = 0xFFEEAA; celestialY = 80; break;
-      case 'noon': celestialColor = 0xFFEEAA; celestialY = 200; break;
-      case 'evening': celestialColor = 0xFF8C00; celestialY = 40; break;
-      case 'night': celestialColor = 0xEEEEFF; celestialY = 150; break;
-      case 'midnight': celestialColor = 0xDDDDFF; celestialY = 200; break;
+      case 'morning': celestialColor = 0xFFEEAA; celestialX = -1200; celestialY = 100; break; // Sun rises on left
+      case 'noon':    celestialColor = 0xFFEEAA; celestialX = 0;     celestialY = 600; break; // Sun peaks in center
+      case 'evening': celestialColor = 0xFF8C00; celestialX = 1200;  celestialY = 100; break; // Sun sets on right
+      case 'night':   celestialColor = 0xEEEEFF; celestialX = -1200; celestialY = 100; break; // Moon rises on left
+      case 'midnight':celestialColor = 0xDDDDFF; celestialX = 0;     celestialY = 600; break; // Moon peaks in center
     }
     
     // Hide sun/moon if bad weather
     if (this.state.weather === 'cloudy' || this.state.weather === 'rain' || this.state.weather === 'storm' || this.state.weather === 'fog') {
-      celestialY = -100;
+      celestialY = -200;
+    }
+
+    // Snap celestial position if wrapping from Evening (right horizon) to Night (left horizon)
+    if (this.state.time === 'night' && this.celestial.position.x > 500) {
+      this.celestial.position.set(celestialX, -200, -2000); 
+    }
+    // Snap from Midnight (center peak) to Morning (left horizon)
+    if (this.state.time === 'morning' && this.celestial.position.x > -100) {
+      this.celestial.position.set(celestialX, -200, -2000); 
     }
 
     this.targetCelestialColor.setHex(celestialColor);
-    this.targetCelestialPos.set(0, celestialY, -400);
+    this.targetCelestialPos.set(celestialX, celestialY, -2000);
 
     // 5. Resolve Street Lights
     let streetLightIntensity = 0;
@@ -760,8 +773,8 @@ export class Environment {
       }
     }
 
-    // Lerp Environment Colors (Smooth 2-5 sec transitions)
-    const lerpSpeed = dt * 1.0; // adjust for speed
+    // Lerp Environment Colors (Smooth 2-5 sec transitions, or continuous if auto-cycling)
+    const lerpSpeed = this.dayCycleEnabled ? dt * 0.15 : dt * 1.5; 
     
     this.scene.background.lerp(this.targets.skyColor, lerpSpeed);
     this.scene.fog.color.lerp(this.targets.fogColor, lerpSpeed);
