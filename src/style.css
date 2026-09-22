@@ -219,10 +219,10 @@ body {
 /* D-Pad Layout (Split Controls for Mobile Comfort) */
 #dpad {
   position: absolute;
-  bottom: 30px;
+  bottom: 100px;
   left: 0;
   width: 100%;
-  padding: 0 20px;
+  padding: 0 40px;
   box-sizing: border-box;
   display: flex;
   justify-content: space-between;
@@ -393,8 +393,8 @@ button:hover {
   }
 
   #dpad {
-    bottom: 35px;
-    padding: 0 15px;
+    bottom: 100px;
+    padding: 0 20px;
   }
   
   .dpad-btn {
