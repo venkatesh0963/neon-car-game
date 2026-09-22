@@ -302,15 +302,49 @@ export class Environment {
     const bType = Math.random();
     const bGroup = new THREE.Group();
     
-    // Create a completely unique color for this specific building!
+    // Dubai style colors: Gold, Silver/White, Blue glass, Cyan glass.
     const mat = this.baseBuildingMat.clone();
-    // Realistic building saturation (10% to 50%) and varied lightness (20% to 80%)
-    mat.color.setHSL(Math.random(), 0.1 + Math.random() * 0.4, 0.2 + Math.random() * 0.6);
+    const dubaiHues = [0.12, 0.55, 0.6, 0.0]; // Gold, Light Blue, Deep Blue, White
+    const hue = dubaiHues[Math.floor(Math.random() * dubaiHues.length)] + (Math.random() * 0.05 - 0.025);
+    const sat = Math.random() > 0.6 ? 0.7 + Math.random() * 0.3 : 0.05 + Math.random() * 0.1; 
+    const lit = 0.3 + Math.random() * 0.5;
+    mat.color.setHSL(hue, sat, lit);
+    mat.metalness = 0.8 + Math.random() * 0.2; // Extra shiny for Dubai
+    mat.roughness = 0.1;
     
     const roofBaseMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
     const materials = [mat, mat, roofBaseMat, roofBaseMat, mat, mat];
     
-    if (bType > 0.6) {
+    if (bType > 0.85) {
+      // SUPERTALL (Burj Khalifa style)
+      const tiers = Math.floor(Math.random() * 3) + 4; // 4 to 6 tiers
+      let currentWidth = 40 + Math.random() * 20;
+      let currentDepth = 40 + Math.random() * 20;
+      let yOffset = 0;
+
+      for(let t=0; t<tiers; t++) {
+        const height = 80 + Math.random() * 100;
+        const geo = new THREE.BoxGeometry(currentWidth, height, currentDepth);
+        const uvs = geo.attributes.uv;
+        for(let i=0; i<uvs.count; i++) {
+            uvs.setXY(i, uvs.getX(i) * (currentWidth / 15), uvs.getY(i) * (height / 15));
+        }
+        
+        const tierMesh = new THREE.Mesh(geo, materials);
+        tierMesh.position.y = yOffset + height / 2;
+        tierMesh.receiveShadow = true;
+        bGroup.add(tierMesh);
+        
+        yOffset += height;
+        currentWidth *= (0.6 + Math.random() * 0.15);
+        currentDepth *= (0.6 + Math.random() * 0.15);
+      }
+      
+      const spire = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 2, 80), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.2 }));
+      spire.position.y = yOffset + 40;
+      bGroup.add(spire);
+
+    } else if (bType > 0.4) {
       // Skyscraper with tiers
       const tiers = Math.floor(Math.random() * 3) + 1;
       let currentWidth = 20 + Math.random() * 15;
@@ -637,7 +671,8 @@ export class Environment {
       grassColor = 0xEEDC9A; // Sand color
       leafColor = 0x4caf50; // Palm leaf color
     } else if (this.biome === 'city') {
-      grassColor = 0x333333; // Concrete color
+      grassColor = 0xE6D2B5; // Dubai Desert Sand
+      mountainColor = 0xC2B280; // Sand Dunes
     }
 
     this.targetGrassColor = new THREE.Color(grassColor);
@@ -767,7 +802,11 @@ export class Environment {
         this.resetSceneryObject(item.mesh);
         
         if (this.biome === 'city') {
-          this.morphToBuilding(item);
+          if (Math.random() > 0.85) {
+            this.morphToPalmTree(item);
+          } else {
+            this.morphToBuilding(item);
+          }
         } else if (this.biome === 'beach') {
           this.morphToPalmTree(item);
         } else if (this.biome === 'bridge') {
@@ -786,7 +825,7 @@ export class Environment {
     for(let mountain of this.mountains) {
       mountain.position.z += movement * 0.1;
       
-      const targetY = (this.biome === 'city' || this.biome === 'beach' || this.biome === 'bridge') ? -200 : 50;
+      const targetY = (this.biome === 'beach' || this.biome === 'bridge') ? -200 : 50;
       mountain.position.y = THREE.MathUtils.lerp(mountain.position.y, targetY, dt * 2.0);
 
       if (mountain.position.z > 100) {
