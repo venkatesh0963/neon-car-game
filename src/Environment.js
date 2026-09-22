@@ -669,8 +669,8 @@ export class Environment {
     this.targets.lightIntensity = intens;
 
     // 2. Resolve Weather Modifiers
-    this.targets.fogFar = 1200;
-    this.targets.fogNear = 250;
+    this.targets.fogFar = 1500;
+    this.targets.fogNear = 600;
     this.targetParticleOpacity = 0.0;
     this.particleMat.color.setHex(0xffffff);
 
@@ -741,15 +741,14 @@ export class Environment {
 
     // 5. Resolve Street Lights
     let streetLightIntensity = 0;
-    let bulbColor = 0x444444;
+    this.targetBulbColor = new THREE.Color(0x444444);
     if (this.state.time === 'evening' || this.state.time === 'night' || this.state.time === 'midnight' || 
         this.state.weather === 'storm' || this.state.weather === 'rain' || this.state.weather === 'fog') {
-      streetLightIntensity = 15.0; // High intensity for realistic asphalt illumination
-      bulbColor = 0xFFFFAA; // Warm glow
+      streetLightIntensity = 1.5; // Reduced intensity so the road doesn't exceed the bloom threshold and glow white
+      this.targetBulbColor.setHex(0xFFFFAA).multiplyScalar(4.0); // Boost color way past 1.5 so the bulb glows intensely
     }
     
     this.targetStreetLightIntensity = streetLightIntensity;
-    this.targetBulbColor = new THREE.Color(bulbColor);
   }
 
   // --- UPDATE LOOP ---
