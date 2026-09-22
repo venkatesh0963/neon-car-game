@@ -157,10 +157,12 @@ export class Environment {
     this.buildingMats = [];
     
     const palettes = [
-      { base: '#3a3c42', win: '#1a252f', hl: '#4a4c52' },
-      { base: '#5b5752', win: '#2c221a', hl: '#6b6762' },
-      { base: '#d4d6d9', win: '#4e6275', hl: '#ffffff' },
-      { base: '#2b2b2b', win: '#3d3a1f', hl: '#3b3b3b' }
+      { base: '#1a1a24', win: '#1a252f', hl: '#2a2a36', neon: '#00ffff' }, // Cyberpunk Dark
+      { base: '#2d2d2d', win: '#2c221a', hl: '#3d3d3d', neon: '#ff00ff' }, // Neon Pink
+      { base: '#d4d6d9', win: '#4e6275', hl: '#ffffff', neon: '#ffff00' }, // Modern Yellow
+      { base: '#2b2b2b', win: '#3d3a1f', hl: '#3b3b3b', neon: '#ff9900' }, // Warm Orange
+      { base: '#5c3a3a', win: '#352121', hl: '#6e4848', neon: '#00ffcc' }, // Brick Teal
+      { base: '#1a3333', win: '#1a252f', hl: '#254747', neon: '#ff3333' }  // Dark Cyan Red
     ];
 
     for(let p of palettes) {
@@ -181,7 +183,12 @@ export class Environment {
       
       for(let r=0; r<rows; r++) {
         for(let c=0; c<cols; c++) {
-          ctx.fillStyle = Math.random() > 0.2 ? p.win : '#0a0a0a';
+          const isLit = Math.random() > 0.3;
+          if (isLit) {
+            ctx.fillStyle = Math.random() > 0.15 ? p.win : p.neon; // 15% of lit windows are bright neon
+          } else {
+            ctx.fillStyle = '#0a0a0a';
+          }
           const x = gapX + c*(winW+gapX);
           const y = gapY + r*(winH+gapY);
           ctx.fillRect(x, y, winW, winH);
@@ -200,7 +207,10 @@ export class Environment {
       const mat = new THREE.MeshStandardMaterial({ 
         map: tex, 
         roughness: 0.5,
-        metalness: 0.3
+        metalness: 0.3,
+        emissive: new THREE.Color(p.neon),
+        emissiveMap: tex,
+        emissiveIntensity: 0.5 // Make the neon pop
       });
       this.buildingMats.push(mat);
     }
@@ -287,39 +297,101 @@ export class Environment {
         item.mesh.remove(item.mesh.children[0]); 
     }
     
-    const width = 15 + Math.random() * 25;
-    const height = 60 + Math.random() * 150;
-    const depth = 15 + Math.random() * 25;
+    const bType = Math.random();
     
-    const geo = new THREE.BoxGeometry(width, height, depth);
-    const uvs = geo.attributes.uv;
-    for(let i=0; i<uvs.count; i++) {
-        let u = uvs.getX(i);
-        let v = uvs.getY(i);
-        uvs.setXY(i, u * (width / 20), v * (height / 20));
-    }
+    if (bType > 0.6) {
+      // Skyscraper
+      const width = 15 + Math.random() * 25;
+      const height = 60 + Math.random() * 150;
+      const depth = 15 + Math.random() * 25;
+      
+      const geo = new THREE.BoxGeometry(width, height, depth);
+      const uvs = geo.attributes.uv;
+      for(let i=0; i<uvs.count; i++) {
+          uvs.setXY(i, uvs.getX(i) * (width / 20), uvs.getY(i) * (height / 20));
+      }
 
-    const mat = this.buildingMats[Math.floor(Math.random() * this.buildingMats.length)];
-    const roofBaseMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 });
-    const materials = [mat, mat, roofBaseMat, roofBaseMat, mat, mat];
+      const mat = this.buildingMats[Math.floor(Math.random() * this.buildingMats.length)];
+      const roofBaseMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 });
+      const materials = [mat, mat, roofBaseMat, roofBaseMat, mat, mat];
 
-    const building = new THREE.Mesh(geo, materials);
-    building.position.y = height / 2;
-    building.castShadow = false; // Prevent huge blocky shadows on the road
-    building.receiveShadow = true;
-    
-    item.mesh.add(building);
-    
-    if (Math.random() > 0.5) {
-      const roofGeo = new THREE.BoxGeometry(width * 0.5, 5, depth * 0.5);
-      const roofMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-      const roof = new THREE.Mesh(roofGeo, roofMat);
-      roof.position.y = height + 2.5;
-      item.mesh.add(roof);
-    } else if (Math.random() > 0.5) {
-      const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 20), new THREE.MeshStandardMaterial({ color: 0x888888 }));
-      antenna.position.y = height + 10;
-      item.mesh.add(antenna);
+      const building = new THREE.Mesh(geo, materials);
+      building.position.y = height / 2;
+      building.castShadow = false;
+      building.receiveShadow = true;
+      item.mesh.add(building);
+      
+      // Roof details
+      if (Math.random() > 0.5) {
+        const roofGeo = new THREE.BoxGeometry(width * 0.5, 5, depth * 0.5);
+        const roofMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        const roof = new THREE.Mesh(roofGeo, roofMat);
+        roof.position.y = height + 2.5;
+        item.mesh.add(roof);
+      }
+    } else if (bType > 0.3) {
+      // Housing (Medium height, pitched or flat roof)
+      const width = 15 + Math.random() * 15;
+      const height = 20 + Math.random() * 25;
+      const depth = 15 + Math.random() * 15;
+      
+      const geo = new THREE.BoxGeometry(width, height, depth);
+      const uvs = geo.attributes.uv;
+      for(let i=0; i<uvs.count; i++) {
+          uvs.setXY(i, uvs.getX(i) * (width / 20), uvs.getY(i) * (height / 20));
+      }
+      
+      const mat = this.buildingMats[Math.floor(Math.random() * this.buildingMats.length)];
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x442222, roughness: 0.9 }); // Reddish roof
+      const materials = [mat, mat, roofMat, roofMat, mat, mat];
+      
+      const building = new THREE.Mesh(geo, materials);
+      building.position.y = height / 2;
+      building.receiveShadow = true;
+      item.mesh.add(building);
+      
+      // Pitched roof
+      if (Math.random() > 0.3) {
+        const pRoofGeo = new THREE.ConeGeometry(width * 0.8, 10, 4);
+        pRoofGeo.rotateY(Math.PI / 4);
+        const pRoof = new THREE.Mesh(pRoofGeo, roofMat);
+        pRoof.position.y = height + 5;
+        item.mesh.add(pRoof);
+      }
+    } else {
+      // Shop (Short, wide, huge glowing neon sign)
+      const width = 20 + Math.random() * 20;
+      const height = 10 + Math.random() * 10;
+      const depth = 15 + Math.random() * 15;
+      
+      const geo = new THREE.BoxGeometry(width, height, depth);
+      const uvs = geo.attributes.uv;
+      for(let i=0; i<uvs.count; i++) {
+          uvs.setXY(i, uvs.getX(i) * (width / 20), uvs.getY(i) * (height / 20));
+      }
+      
+      const mat = this.buildingMats[Math.floor(Math.random() * this.buildingMats.length)];
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+      const materials = [mat, mat, roofMat, roofMat, mat, mat];
+      
+      const building = new THREE.Mesh(geo, materials);
+      building.position.y = height / 2;
+      building.receiveShadow = true;
+      item.mesh.add(building);
+      
+      // Neon Shop Sign
+      const signColors = [0xff00ff, 0x00ffff, 0xffff00, 0xff0033, 0x00ffcc];
+      const sColor = signColors[Math.floor(Math.random() * signColors.length)];
+      const signGeo = new THREE.BoxGeometry(width * 0.8, 3, 1);
+      const signMat = new THREE.MeshBasicMaterial({ color: sColor });
+      const sign = new THREE.Mesh(signGeo, signMat);
+      
+      // Place sign on the road-facing side
+      // The object's local +X or -X faces the road?
+      // In resetSceneryObject, distanceFromBody is absolute X, and sign determines left or right.
+      // We'll just place the sign wrapping around, or just above the shop
+      sign.position.y = height + 1.5;
+      item.mesh.add(sign);
     }
 
     item.type = 'building';
