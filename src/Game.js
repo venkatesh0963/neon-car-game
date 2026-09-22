@@ -82,13 +82,7 @@ export class Game {
       });
     }
 
-    const togglePanelBtn = document.getElementById('toggle-panel-btn');
-    const controlPanel = document.getElementById('control-panel');
-    if (togglePanelBtn && controlPanel) {
-      togglePanelBtn.addEventListener('click', () => {
-        controlPanel.classList.toggle('closed');
-      });
-    }
+
 
     // Bind Control Panel Buttons
     const ctrlBtns = document.querySelectorAll('.ctrl-btn');

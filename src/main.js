@@ -21,16 +21,17 @@ camera.lookAt(0, 0, -20);
 // Renderer setup
 const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio); // Full resolution
+const pixelRatio = Math.min(window.devicePixelRatio, 1.5); // Cap to 1.5 to prevent lag on 4K/Retina displays
+renderer.setPixelRatio(pixelRatio);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.appendChild(renderer.domElement);
 
 // Post-processing setup with MSAA (Multisampled Anti-Aliasing for WebGL2)
 const renderTarget = new THREE.WebGLRenderTarget(
-  window.innerWidth * window.devicePixelRatio, 
-  window.innerHeight * window.devicePixelRatio, 
-  { samples: 4 } // 4x MSAA for perfectly crisp edges
+  window.innerWidth * pixelRatio, 
+  window.innerHeight * pixelRatio, 
+  { samples: 2 } // 2x MSAA is enough for crispness while maintaining 60fps
 );
 
 const composer = new EffectComposer(renderer, renderTarget);
@@ -40,7 +41,7 @@ composer.addPass(renderScene);
 
 // Resolution, strength, radius, threshold
 const bloomPass = new UnrealBloomPass(
-  new THREE.Vector2(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio), 
+  new THREE.Vector2(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio), 
   0.6, 0.5, 1.5 // Increased threshold to 1.5 (so only super-bright HDR things glow)
 );
 composer.addPass(bloomPass);
