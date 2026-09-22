@@ -216,7 +216,7 @@ export class Game {
 
     // Update Entities
     this.env.update(this.speed, dt);
-    this.player.update(dt);
+    this.player.update(dt, this.env.curveAmount);
     // this.traffic.update(dt, this.speed, this.player.box, this.env.curveAmount);
 
     // Collision

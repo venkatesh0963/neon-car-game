@@ -201,15 +201,22 @@ export class Player {
     this.scene.add(this.pathGroup);
   }
 
-  update(dt) {
+  update(dt, curveAmount = 0) {
     this.handleInput(dt);
     
     // Smooth transition to target lane
     this.mesh.position.x = THREE.MathUtils.lerp(this.mesh.position.x, this.targetX, dt * 10);
     
     // Tilt while turning
-    const tilt = (this.targetX - this.mesh.position.x) * -0.05;
+    const steerDiff = this.targetX - this.mesh.position.x;
+    const tilt = steerDiff * 0.08; // Lean into the turn
     this.mesh.rotation.z = THREE.MathUtils.lerp(this.mesh.rotation.z, tilt, dt * 15);
+    
+    // Yaw (turn) the car based on the road's curve PLUS active steering
+    const curveYaw = -curveAmount * 1200; 
+    const steerYaw = steerDiff * -0.06;
+    const targetYaw = curveYaw + steerYaw; 
+    this.mesh.rotation.y = THREE.MathUtils.lerp(this.mesh.rotation.y, targetYaw, dt * 10);
     
     // Update bounding box (O(1) fast update)
     const center = this.mesh.position.clone().add(this.carCenterOffset);
