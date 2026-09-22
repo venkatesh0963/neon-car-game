@@ -217,11 +217,11 @@ export class Game {
     // Update Entities
     this.env.update(this.speed, dt);
     this.player.update(dt);
-    this.traffic.update(dt, this.speed, this.player.box);
+    // this.traffic.update(dt, this.speed, this.player.box);
 
     // Collision
-    if (this.traffic.checkCollision(this.player.box)) {
-      this.gameOver();
-    }
+    // if (this.traffic.checkCollision(this.player.box)) {
+    //   this.gameOver();
+    // }
   }
 }
