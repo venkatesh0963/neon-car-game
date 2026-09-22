@@ -156,73 +156,66 @@ export class Environment {
   initBuildingMaterials() {
     this.buildingMats = [];
     
-    const palettes = [
-      { base: '#2b2e33', win: '#2c3e50', hl: '#1c1f24', neon: '#a3d8f4' }, // Modern Blue Glass
-      { base: '#423d38', win: '#1a1816', hl: '#292522', neon: '#f4c58f' }, // Warm Corporate
-      { base: '#3a4242', win: '#2a3b3a', hl: '#252e2e', neon: '#a4dbdb' }, // Corporate Teal
-      { base: '#d4d6d9', win: '#8c9ea8', hl: '#8ea6b3', neon: '#ffffff' }, // Modern White
-      { base: '#151515', win: '#1f2226', hl: '#0a0a0a', neon: '#d1e6fa' }, // Sleek Black
-      { base: '#6e4f42', win: '#241a15', hl: '#4d372e', neon: '#fcead9' }  // Brick/Classic
-    ];
+    // We create one high-quality white/grayscale template texture.
+    // We will clone this material and assign a random color for EVERY building.
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    // Main concrete/steel base (White so it can be tinted)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 256, 512);
+    
+    const rows = 16;
+    const cols = 8;
+    const winW = 20;
+    const winH = 22;
+    const gapX = (256 - (cols * winW)) / (cols + 1);
+    const gapY = (512 - (rows * winH)) / (rows + 1);
+    
+    for(let r=0; r<rows; r++) {
+      for(let c=0; c<cols; c++) {
+        const x = gapX + c*(winW+gapX);
+        const y = gapY + r*(winH+gapY);
 
-    for(let p of palettes) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 256;
-      canvas.height = 512;
-      const ctx = canvas.getContext('2d');
-      
-      // Main concrete/steel base
-      ctx.fillStyle = p.base;
-      ctx.fillRect(0, 0, 256, 512);
-      
-      const rows = 16;
-      const cols = 8;
-      const winW = 20;
-      const winH = 22;
-      const gapX = (256 - (cols * winW)) / (cols + 1);
-      const gapY = (512 - (rows * winH)) / (rows + 1);
-      
-      for(let r=0; r<rows; r++) {
-        for(let c=0; c<cols; c++) {
-          const x = gapX + c*(winW+gapX);
-          const y = gapY + r*(winH+gapY);
+        // Deep Frame border
+        ctx.fillStyle = '#cccccc';
+        ctx.fillRect(x - 2, y - 2, winW + 4, winH + 4);
 
-          // Deep Frame border
-          ctx.fillStyle = p.hl;
-          ctx.fillRect(x - 2, y - 2, winW + 4, winH + 4);
-
-          const isLit = Math.random() > 0.6; // Most office windows are off at night
-          
-          if (isLit) {
-            ctx.fillStyle = Math.random() > 0.8 ? p.neon : '#fceea7'; // Warm office light or tint
-          } else {
-            ctx.fillStyle = p.win; // Dark glass reflection
-          }
-          
-          ctx.fillRect(x, y, winW, winH);
-          
-          // Inner window cross (Mullions)
-          ctx.fillStyle = '#0f0f0f'; // Dark inner frame
-          ctx.fillRect(x + winW/2 - 1, y, 2, winH); // Vertical
-          ctx.fillRect(x, y + winH/2 - 1, winW, 2); // Horizontal
+        const isLit = Math.random() > 0.6; // Most office windows are off at night
+        
+        if (isLit) {
+          // Warm office light or bright white
+          ctx.fillStyle = Math.random() > 0.8 ? '#ffffff' : '#fceea7'; 
+        } else {
+          // Dark glass reflection (neutral dark grey so it takes the building tint nicely)
+          ctx.fillStyle = '#111111';
         }
+        
+        ctx.fillRect(x, y, winW, winH);
+        
+        // Inner window cross (Mullions)
+        ctx.fillStyle = '#050505'; // Dark inner frame
+        ctx.fillRect(x + winW/2 - 1, y, 2, winH); // Vertical
+        ctx.fillRect(x, y + winH/2 - 1, winW, 2); // Horizontal
       }
-      
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.wrapS = THREE.RepeatWrapping;
-      tex.wrapT = THREE.RepeatWrapping;
-      tex.anisotropy = 4;
-      
-      const mat = new THREE.MeshStandardMaterial({ 
-        map: tex, 
-        roughness: 0.2, // Glass is very shiny
-        metalness: 0.7, // High metalness for glass/metal structures
-        emissive: new THREE.Color(0xffffee),
-        emissiveMap: tex,
-        emissiveIntensity: 0.3 // Subtle warm glow from windows
-      });
-      this.buildingMats.push(mat);
     }
+    
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.anisotropy = 4;
+    
+    // Base template material
+    this.baseBuildingMat = new THREE.MeshStandardMaterial({ 
+      map: tex, 
+      roughness: 0.3,
+      metalness: 0.5,
+      emissive: new THREE.Color(0xffffff),
+      emissiveMap: tex,
+      emissiveIntensity: 0.4
+    });
   }
 
   initScenery() {
@@ -308,7 +301,12 @@ export class Environment {
     
     const bType = Math.random();
     const bGroup = new THREE.Group();
-    const mat = this.buildingMats[Math.floor(Math.random() * this.buildingMats.length)];
+    
+    // Create a completely unique color for this specific building!
+    const mat = this.baseBuildingMat.clone();
+    // Realistic building saturation (10% to 50%) and varied lightness (20% to 80%)
+    mat.color.setHSL(Math.random(), 0.1 + Math.random() * 0.4, 0.2 + Math.random() * 0.6);
+    
     const roofBaseMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
     const materials = [mat, mat, roofBaseMat, roofBaseMat, mat, mat];
     
@@ -393,8 +391,7 @@ export class Environment {
       bGroup.add(building);
       
       // Glowing Storefront Sign Base
-      const signColors = [0xffffff, 0xff0033, 0xffaa00, 0x00aaff];
-      const sColor = signColors[Math.floor(Math.random() * signColors.length)];
+      const sColor = new THREE.Color().setHSL(Math.random(), 0.8 + Math.random() * 0.2, 0.5 + Math.random() * 0.2);
       
       const signGeo = new THREE.BoxGeometry(width * 0.9, 2.5, depth + 1.5);
       const signMat = new THREE.MeshStandardMaterial({ 
