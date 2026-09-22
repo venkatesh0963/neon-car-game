@@ -82,14 +82,112 @@
         </div>
       </div>
       
-      <!-- Start Menu -->
-      <div id="start-menu" class="menu-overlay">
-        <div class="glitch-title" data-text="AUTOPILOT">AUTOPILOT</div>
-        <div class="subtitle">NEON HIGHWAY</div>
-        <button id="start-btn">ENGAGE</button>
-        <div class="instructions">
-          A / D or Arrow Keys - Change Lane<br>
-          Tap Left/Right Side on Mobile
+      <!-- Start Menu (Landing Page) -->
+      <div id="start-menu" class="landing-page">
+        <div class="landing-header">
+          <div class="top-row">
+            <span>VOL. 01 NO. 001</span>
+            <span class="edition">THE ASPHALT EDITION</span>
+            <span>PRICE 20¢</span>
+          </div>
+          <div class="title-row">
+            <h1 class="neon-title">NEON:HIGHWAY</h1>
+          </div>
+          <div class="bottom-row">
+            <span>NIGHTCITY TRANSPORT AUTHORITY</span>
+            <span>MONDAY, 0600 HOURS</span>
+            <span>SECTOR 4 DEPLOYMENT</span>
+          </div>
+        </div>
+
+        <div class="landing-content">
+          <!-- Left Column -->
+          <div class="col-left">
+            <h2 class="bold-header">YOU'VE GOT<br>TRAFFIC TO<br>DODGE.</h2>
+            <p class="desc">
+              <span class="dropcap">H</span>it the asphalt before breakfast, navigate the dense city grid, and survive the endless neon highway. One life to do it with.
+            </p>
+            
+            <div class="assignment">
+              <div class="label">YOUR FIRST ASSIGNMENT</div>
+              <div class="value">SECTOR 4 CITY GRID</div>
+              <div class="sub-value">DENSE TRAFFIC. DRIVE CAREFULLY.</div>
+            </div>
+            
+            <div class="stats">
+              <div class="stat"><div class="val">240</div><div class="lbl">SPEED</div></div>
+              <div class="stat"><div class="val">3</div><div class="lbl">BIOMES</div></div>
+              <div class="stat"><div class="val">1</div><div class="lbl">LIFE</div></div>
+            </div>
+            
+            <button id="start-btn" class="launch-btn">LAUNCH N-HIGHWAY &rarr;</button>
+          </div>
+
+          <!-- Center Column -->
+          <div class="col-center">
+            <div id="game-preview-container">
+              <div id="app"></div> <!-- Game mounts here -->
+            </div>
+            <div class="preview-label">EXPERIMENTAL PROTOTYPE N-HIGHWAY IN ACTION.</div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="col-right">
+            <h3 class="side-header">HOW TO PLAY</h3>
+            <ol class="how-to-list">
+              <li>
+                <strong>1. SURVIVE THE ROAD</strong>
+                <p>Dodge endless traffic to stay alive.</p>
+              </li>
+              <li>
+                <strong>2. STAY ON THE MOVE</strong>
+                <p>The car drives itself. Steer left and right.</p>
+              </li>
+              <li>
+                <strong>3. CONTROL THE WORLD</strong>
+                <p>Use the settings panel to change time and weather.</p>
+              </li>
+              <li>
+                <strong>4. ENJOY THE RIDE</strong>
+                <p>Speed increases as you travel deeper into the city.</p>
+              </li>
+            </ol>
+            
+            <div class="developer-box">
+              <div class="dev-title">DEVELOPER</div>
+              <div class="dev-desc">Created with passion by Antigravity.</div>
+              <div class="dev-link">🌐 Follow @antigravity</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="landing-footer">
+          <div class="footer-left">
+            <h3 class="footer-header">CONTROLS</h3>
+            <h2 class="footer-bold">KEEP DRIVING.</h2>
+            <div class="controls-grid">
+              <div class="control-row">
+                <div class="keys"><span class="key">A</span> <span class="key">D</span></div>
+                <div class="key-desc"><strong>Steer</strong><br>Move across the highway to dodge traffic.</div>
+              </div>
+              <div class="control-row">
+                <div class="keys"><span class="key">C</span></div>
+                <div class="key-desc"><strong>Camera</strong><br>Switch between nose-cam and chase-cam.</div>
+              </div>
+              <div class="control-row">
+                <div class="keys">📱</div>
+                <div class="key-desc"><strong>On a Phone</strong><br>Use the touchscreen D-Pad.</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="footer-right">
+            <h3 class="footer-header">WATCH OUT FOR...</h3>
+            <h2 class="footer-bold">THE TRAFFIC FIGHTS BACK.</h2>
+            <div class="comic-box">
+              <div class="comic-content">🚗 💨</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -102,7 +200,6 @@
       </div>
     </div>
 
-    <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

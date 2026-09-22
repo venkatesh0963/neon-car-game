@@ -118,6 +118,19 @@ export class Game {
     this.speed = this.baseSpeed;
     this.traffic.reset();
     
+    // Make game fullscreen by moving it to body
+    const appContainer = document.getElementById('app');
+    if (appContainer && appContainer.parentElement !== document.body) {
+        document.body.appendChild(appContainer);
+        appContainer.style.position = 'absolute';
+        appContainer.style.top = '0';
+        appContainer.style.left = '0';
+        appContainer.style.width = '100vw';
+        appContainer.style.height = '100vh';
+        appContainer.style.zIndex = '1';
+        window.dispatchEvent(new Event('resize'));
+    }
+
     this.ui.startMenu.classList.add('hidden');
     this.ui.gameOverMenu.classList.add('hidden');
     this.ui.hud.classList.remove('hidden');
@@ -146,6 +159,20 @@ export class Game {
     this.ui.hud.classList.add('hidden');
     this.ui.gameOverMenu.classList.add('hidden');
     this.ui.startMenu.classList.remove('hidden');
+    
+    // Put game back into preview container
+    const appContainer = document.getElementById('app');
+    const previewContainer = document.getElementById('game-preview-container');
+    if (appContainer && previewContainer && appContainer.parentElement !== previewContainer) {
+        previewContainer.appendChild(appContainer);
+        appContainer.style.position = 'relative';
+        appContainer.style.top = 'auto';
+        appContainer.style.left = 'auto';
+        appContainer.style.width = '100%';
+        appContainer.style.height = '100%';
+        appContainer.style.zIndex = 'auto';
+        window.dispatchEvent(new Event('resize'));
+    }
     
     const dpad = document.getElementById('dpad');
     if (dpad) dpad.classList.add('hidden');
