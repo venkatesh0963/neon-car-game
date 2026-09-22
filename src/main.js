@@ -41,7 +41,7 @@ composer.addPass(renderScene);
 // Resolution, strength, radius, threshold
 const bloomPass = new UnrealBloomPass(
   new THREE.Vector2(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio), 
-  0.3, 0.5, 0.9
+  0.6, 0.5, 1.5 // Increased threshold to 1.5 (so only super-bright HDR things glow)
 );
 composer.addPass(bloomPass);
 

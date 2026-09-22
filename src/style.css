@@ -216,23 +216,25 @@ body {
   font-weight: bold;
 }
 
-/* D-Pad */
+/* D-Pad Layout (Split Controls for Mobile Comfort) */
 #dpad {
   position: absolute;
-  bottom: 120px;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: 30px;
+  left: 0;
+  width: 100%;
+  padding: 0 20px;
+  box-sizing: border-box;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  pointer-events: auto;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none; /* Let clicks pass through empty space */
   z-index: 100;
 }
 
-.dpad-row {
+.dpad-left-cluster, .dpad-right-cluster {
   display: flex;
-  gap: 10px;
+  gap: 15px;
+  pointer-events: auto;
 }
 
 .dpad-btn {
@@ -391,12 +393,14 @@ button:hover {
   }
 
   #dpad {
-    bottom: 100px;
+    bottom: 35px;
+    padding: 0 15px;
   }
   
   .dpad-btn {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
+    width: 65px;
+    height: 65px;
+    font-size: 28px;
+    border-radius: 15px;
   }
 }

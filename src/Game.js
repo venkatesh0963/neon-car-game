@@ -66,6 +66,15 @@ export class Game {
       });
     }
 
+    const togglePanelBtn = document.getElementById('toggle-panel-btn');
+    const controlPanel = document.getElementById('control-panel');
+    if (togglePanelBtn && controlPanel) {
+      togglePanelBtn.addEventListener('click', () => {
+        controlPanel.classList.toggle('closed');
+        togglePanelBtn.classList.toggle('active');
+      });
+    }
+
     const menuBtn = document.getElementById('menu-btn');
     if (menuBtn) {
       menuBtn.addEventListener('click', () => {
