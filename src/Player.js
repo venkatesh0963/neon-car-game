@@ -221,18 +221,18 @@ export class Player {
     
     // Keyboard / D-Pad continuous steering
     if (this.input.keys.left) {
-      this.targetX += steerSpeed * dt;
+      this.targetX -= steerSpeed * dt; // Left is -X
     } 
     if (this.input.keys.right) {
-      this.targetX -= steerSpeed * dt;
+      this.targetX += steerSpeed * dt; // Right is +X
     }
 
     // Retain screen taps for small nudges (mobile fallback)
     if (this.input.consumeSwipeLeft()) {
-      this.targetX += 3.0; // Nudge left
+      this.targetX -= 3.0; // Nudge left
     }
     if (this.input.consumeSwipeRight()) {
-      this.targetX -= 3.0; // Nudge right
+      this.targetX += 3.0; // Nudge right
     }
 
     // Clamp to road bounds (Road width is 30, from -15 to +15)
