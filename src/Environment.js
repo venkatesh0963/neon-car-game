@@ -75,7 +75,11 @@ export class Environment {
   }
 
   initTerrain() {
-    const grassGeo = new THREE.PlaneGeometry(400, this.roadLength);
+    this.curveAmount = 0;
+    this.targetCurveAmount = 0;
+    this.curveTimer = 0;
+
+    const grassGeo = new THREE.PlaneGeometry(400, this.roadLength, 1, 60);
     this.grassMat = new THREE.MeshLambertMaterial({ color: 0x00C853 });
     
     this.grassL = new THREE.Mesh(grassGeo, this.grassMat);
@@ -91,7 +95,7 @@ export class Environment {
     this.scene.add(this.grassR);
     
     // Ocean planes
-    const oceanGeo = new THREE.PlaneGeometry(400, this.roadLength);
+    const oceanGeo = new THREE.PlaneGeometry(400, this.roadLength, 1, 60);
     this.oceanMat = new THREE.MeshLambertMaterial({ color: 0x1ca3ec });
     
     this.oceanL = new THREE.Mesh(oceanGeo, this.oceanMat);
@@ -106,22 +110,22 @@ export class Environment {
   }
 
   initRoad() {
-    const roadGeometry = new THREE.PlaneGeometry(this.roadWidth, this.roadLength);
+    const roadGeometry = new THREE.PlaneGeometry(this.roadWidth, this.roadLength, 1, 60);
     const roadMaterial = new THREE.MeshStandardMaterial({ 
       color: 0x1A1A1A,
       roughness: 0.8,
       metalness: 0.1
     });
     
-    const road = new THREE.Mesh(roadGeometry, roadMaterial);
-    road.rotation.x = -Math.PI / 2;
-    road.position.z = -this.roadLength / 2 + 50;
-    road.position.y = -0.1;
-    road.receiveShadow = true;
-    this.scene.add(road);
+    this.road = new THREE.Mesh(roadGeometry, roadMaterial);
+    this.road.rotation.x = -Math.PI / 2;
+    this.road.position.z = -this.roadLength / 2 + 50;
+    this.road.position.y = -0.1;
+    this.road.receiveShadow = true;
+    this.scene.add(this.road);
 
     // Sidewalks
-    const sidewalkGeo = new THREE.PlaneGeometry(4, this.roadLength);
+    const sidewalkGeo = new THREE.PlaneGeometry(4, this.roadLength, 1, 60);
     const sidewalkMat = new THREE.MeshLambertMaterial({ color: 0x666666 });
     
     this.sidewalkL = new THREE.Mesh(sidewalkGeo, sidewalkMat);
@@ -135,6 +139,15 @@ export class Environment {
     this.sidewalkR.position.set(this.roadWidth / 2 + 2, -0.05, -this.roadLength / 2 + 50);
     this.sidewalkR.receiveShadow = true;
     this.scene.add(this.sidewalkR);
+    
+    // Save original X for bending
+    [this.road, this.sidewalkL, this.sidewalkR, this.grassL, this.grassR, this.oceanL, this.oceanR].forEach(plane => {
+        const pos = plane.geometry.attributes.position.array;
+        plane.userData.originalX = new Float32Array(pos.length);
+        for(let i=0; i<pos.length; i+=3) {
+            plane.userData.originalX[i] = pos[i];
+        }
+    });
 
     this.laneDividers = [];
     const dividerGeo = new THREE.BoxGeometry(0.3, 0.1, 4);
@@ -572,7 +585,8 @@ export class Environment {
       distanceFromBody = 20; // Fixed distance directly adjacent to the road
     }
     
-    obj.position.x = side * distanceFromBody;
+    obj.userData.baseX = side * distanceFromBody;
+    obj.position.x = obj.userData.baseX;
     if (initial) {
       obj.position.z = 50 - Math.random() * this.roadLength;
     } else {
@@ -789,15 +803,55 @@ export class Environment {
     // Movement
     const movement = speed * dt;
     
+    // Update road curve
+    this.curveTimer += dt;
+    // Slowly change target curve every few seconds
+    if (Math.random() < 0.005) {
+      this.targetCurveAmount = (Math.random() - 0.5) * 0.0002;
+    }
+    this.curveAmount = THREE.MathUtils.lerp(this.curveAmount, this.targetCurveAmount, dt * 0.2);
+
+    // Bend the planes
+    [this.road, this.sidewalkL, this.sidewalkR, this.grassL, this.grassR, this.oceanL, this.oceanR].forEach(plane => {
+        const positions = plane.geometry.attributes.position.array;
+        const originalX = plane.userData.originalX;
+        for(let i=0; i<positions.length; i+=3) {
+            const worldZ = plane.position.z - positions[i+1];
+            // Only bend if in front of camera (z < 0)
+            if (worldZ < 0) {
+                const zDist = Math.abs(worldZ);
+                positions[i] = originalX[i] + this.curveAmount * (zDist * zDist);
+            } else {
+                positions[i] = originalX[i];
+            }
+        }
+        plane.geometry.attributes.position.needsUpdate = true;
+    });
+    
     for(let divider of this.laneDividers) {
       divider.position.z += movement;
       if (divider.position.z > 20) {
         divider.position.z -= 600;
       }
+      
+      // Apply curve to divider
+      if (divider.position.z < 0) {
+        const zDist = Math.abs(divider.position.z);
+        const originalX = divider === this.laneDividers[this.laneDividers.indexOf(divider)] ? 
+            (this.laneDividers.indexOf(divider) % 2 === 0 ? -this.roadWidth/6 : this.roadWidth/6) : 0;
+        divider.position.x = originalX + this.curveAmount * (zDist * zDist);
+      }
     }
     
     for(let item of this.sceneryObjects) {
       item.mesh.position.z += movement;
+      
+      // Curve
+      if (item.mesh.position.z < 0) {
+        const zDist = Math.abs(item.mesh.position.z);
+        item.mesh.position.x = item.mesh.userData.baseX + this.curveAmount * (zDist * zDist);
+      }
+
       if (item.mesh.position.z > 50) {
         this.resetSceneryObject(item.mesh);
         
@@ -825,6 +879,15 @@ export class Environment {
     for(let mountain of this.mountains) {
       mountain.position.z += movement * 0.1;
       
+      // Curve mountains too
+      if (mountain.position.z < 0) {
+        const zDist = Math.abs(mountain.position.z);
+        if (mountain.userData.baseX === undefined) {
+          mountain.userData.baseX = mountain.position.x;
+        }
+        mountain.position.x = mountain.userData.baseX + this.curveAmount * (zDist * zDist) * 0.5; // less curve for distant objects
+      }
+
       const targetY = (this.biome === 'beach' || this.biome === 'bridge') ? -200 : 50;
       mountain.position.y = THREE.MathUtils.lerp(mountain.position.y, targetY, dt * 2.0);
 

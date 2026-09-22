@@ -90,18 +90,20 @@ export class TrafficManager {
     
     // Now move it to its spawn location
     const laneIndex = Math.floor(Math.random() * 3);
-    v.position.set(this.lanes[laneIndex], 0, -300); // spawn far ahead
+    const laneX = this.lanes[laneIndex];
+    v.position.set(laneX, 0, -300); // spawn far ahead
 
     this.scene.add(v);
     this.vehicles.push({ 
       mesh: v, 
       box: new THREE.Box3(),
       size: size,
-      centerOffset: centerOffset
+      centerOffset: centerOffset,
+      laneX: laneX
     });
   }
 
-  update(dt, playerSpeed, playerBox) {
+  update(dt, playerSpeed, playerBox, curveAmount = 0) {
     this.spawnTimer += dt;
     
     // Faster player speed = faster spawn rate
@@ -121,12 +123,22 @@ export class TrafficManager {
       const relativeSpeed = playerSpeed - 30; // Traffic drives at 30km/h
       
       v.mesh.position.z += relativeSpeed * dt;
+      
+      // Apply world curve
+      if (v.mesh.position.z < 0) {
+        const zDist = Math.abs(v.mesh.position.z);
+        v.mesh.position.x = v.laneX + curveAmount * (zDist * zDist);
+      } else {
+        v.mesh.position.x = v.laneX;
+      }
+
       const center = v.mesh.position.clone().add(v.centerOffset);
       v.box.setFromCenterAndSize(center, v.size);
 
       // Update detection box color based on distance to player
       const distance = v.mesh.position.distanceTo(playerCenter);
-      const isSameLane = Math.abs(v.mesh.position.x - playerCenter.x) < 2.0;
+      // Determine if in same lane by checking base laneX, not the curved position
+      const isSameLane = Math.abs(v.laneX - playerCenter.x) < 2.0;
 
       if (isSameLane && distance < 40 && v.mesh.position.z < playerCenter.z) {
         // Dangerous
