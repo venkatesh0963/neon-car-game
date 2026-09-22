@@ -157,12 +157,12 @@ export class Environment {
     this.buildingMats = [];
     
     const palettes = [
-      { base: '#1a1a24', win: '#1a252f', hl: '#2a2a36', neon: '#00ffff' }, // Cyberpunk Dark
-      { base: '#2d2d2d', win: '#2c221a', hl: '#3d3d3d', neon: '#ff00ff' }, // Neon Pink
-      { base: '#d4d6d9', win: '#4e6275', hl: '#ffffff', neon: '#ffff00' }, // Modern Yellow
-      { base: '#2b2b2b', win: '#3d3a1f', hl: '#3b3b3b', neon: '#ff9900' }, // Warm Orange
-      { base: '#5c3a3a', win: '#352121', hl: '#6e4848', neon: '#00ffcc' }, // Brick Teal
-      { base: '#1a3333', win: '#1a252f', hl: '#254747', neon: '#ff3333' }  // Dark Cyan Red
+      { base: '#2b2e33', win: '#2c3e50', hl: '#1c1f24', neon: '#a3d8f4' }, // Modern Blue Glass
+      { base: '#423d38', win: '#1a1816', hl: '#292522', neon: '#f4c58f' }, // Warm Corporate
+      { base: '#3a4242', win: '#2a3b3a', hl: '#252e2e', neon: '#a4dbdb' }, // Corporate Teal
+      { base: '#d4d6d9', win: '#8c9ea8', hl: '#8ea6b3', neon: '#ffffff' }, // Modern White
+      { base: '#151515', win: '#1f2226', hl: '#0a0a0a', neon: '#d1e6fa' }, // Sleek Black
+      { base: '#6e4f42', win: '#241a15', hl: '#4d372e', neon: '#fcead9' }  // Brick/Classic
     ];
 
     for(let p of palettes) {
@@ -171,6 +171,7 @@ export class Environment {
       canvas.height = 512;
       const ctx = canvas.getContext('2d');
       
+      // Main concrete/steel base
       ctx.fillStyle = p.base;
       ctx.fillRect(0, 0, 256, 512);
       
@@ -183,19 +184,27 @@ export class Environment {
       
       for(let r=0; r<rows; r++) {
         for(let c=0; c<cols; c++) {
-          const isLit = Math.random() > 0.3;
-          if (isLit) {
-            ctx.fillStyle = Math.random() > 0.15 ? p.win : p.neon; // 15% of lit windows are bright neon
-          } else {
-            ctx.fillStyle = '#0a0a0a';
-          }
           const x = gapX + c*(winW+gapX);
           const y = gapY + r*(winH+gapY);
+
+          // Deep Frame border
+          ctx.fillStyle = p.hl;
+          ctx.fillRect(x - 2, y - 2, winW + 4, winH + 4);
+
+          const isLit = Math.random() > 0.6; // Most office windows are off at night
+          
+          if (isLit) {
+            ctx.fillStyle = Math.random() > 0.8 ? p.neon : '#fceea7'; // Warm office light or tint
+          } else {
+            ctx.fillStyle = p.win; // Dark glass reflection
+          }
+          
           ctx.fillRect(x, y, winW, winH);
           
-          ctx.fillStyle = p.hl;
-          ctx.fillRect(x, y, winW, 2);
-          ctx.fillRect(x, y, 2, winH);
+          // Inner window cross (Mullions)
+          ctx.fillStyle = '#0f0f0f'; // Dark inner frame
+          ctx.fillRect(x + winW/2 - 1, y, 2, winH); // Vertical
+          ctx.fillRect(x, y + winH/2 - 1, winW, 2); // Horizontal
         }
       }
       
@@ -206,11 +215,11 @@ export class Environment {
       
       const mat = new THREE.MeshStandardMaterial({ 
         map: tex, 
-        roughness: 0.5,
-        metalness: 0.3,
-        emissive: new THREE.Color(p.neon),
+        roughness: 0.2, // Glass is very shiny
+        metalness: 0.7, // High metalness for glass/metal structures
+        emissive: new THREE.Color(0xffffee),
         emissiveMap: tex,
-        emissiveIntensity: 0.5 // Make the neon pop
+        emissiveIntensity: 0.3 // Subtle warm glow from windows
       });
       this.buildingMats.push(mat);
     }
@@ -298,39 +307,44 @@ export class Environment {
     }
     
     const bType = Math.random();
+    const bGroup = new THREE.Group();
+    const mat = this.buildingMats[Math.floor(Math.random() * this.buildingMats.length)];
+    const roofBaseMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 });
+    const materials = [mat, mat, roofBaseMat, roofBaseMat, mat, mat];
     
     if (bType > 0.6) {
-      // Skyscraper
-      const width = 15 + Math.random() * 25;
-      const height = 60 + Math.random() * 150;
-      const depth = 15 + Math.random() * 25;
-      
-      const geo = new THREE.BoxGeometry(width, height, depth);
-      const uvs = geo.attributes.uv;
-      for(let i=0; i<uvs.count; i++) {
-          uvs.setXY(i, uvs.getX(i) * (width / 20), uvs.getY(i) * (height / 20));
+      // Skyscraper with tiers
+      const tiers = Math.floor(Math.random() * 3) + 1;
+      let currentWidth = 20 + Math.random() * 15;
+      let currentDepth = 20 + Math.random() * 15;
+      let yOffset = 0;
+
+      for(let t=0; t<tiers; t++) {
+        const height = 40 + Math.random() * 60;
+        const geo = new THREE.BoxGeometry(currentWidth, height, currentDepth);
+        const uvs = geo.attributes.uv;
+        for(let i=0; i<uvs.count; i++) {
+            uvs.setXY(i, uvs.getX(i) * (currentWidth / 15), uvs.getY(i) * (height / 15));
+        }
+        
+        const tierMesh = new THREE.Mesh(geo, materials);
+        tierMesh.position.y = yOffset + height / 2;
+        tierMesh.receiveShadow = true;
+        bGroup.add(tierMesh);
+        
+        yOffset += height;
+        currentWidth *= (0.7 + Math.random() * 0.2);
+        currentDepth *= (0.7 + Math.random() * 0.2);
       }
-
-      const mat = this.buildingMats[Math.floor(Math.random() * this.buildingMats.length)];
-      const roofBaseMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 });
-      const materials = [mat, mat, roofBaseMat, roofBaseMat, mat, mat];
-
-      const building = new THREE.Mesh(geo, materials);
-      building.position.y = height / 2;
-      building.castShadow = false;
-      building.receiveShadow = true;
-      item.mesh.add(building);
       
       // Roof details
       if (Math.random() > 0.5) {
-        const roofGeo = new THREE.BoxGeometry(width * 0.5, 5, depth * 0.5);
-        const roofMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
-        const roof = new THREE.Mesh(roofGeo, roofMat);
-        roof.position.y = height + 2.5;
-        item.mesh.add(roof);
+        const antenna = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 20), new THREE.MeshStandardMaterial({ color: 0x888888 }));
+        antenna.position.y = yOffset + 10;
+        bGroup.add(antenna);
       }
     } else if (bType > 0.3) {
-      // Housing (Medium height, pitched or flat roof)
+      // Housing / Apartment Complex
       const width = 15 + Math.random() * 15;
       const height = 20 + Math.random() * 25;
       const depth = 15 + Math.random() * 15;
@@ -338,62 +352,69 @@ export class Environment {
       const geo = new THREE.BoxGeometry(width, height, depth);
       const uvs = geo.attributes.uv;
       for(let i=0; i<uvs.count; i++) {
-          uvs.setXY(i, uvs.getX(i) * (width / 20), uvs.getY(i) * (height / 20));
+          uvs.setXY(i, uvs.getX(i) * (width / 15), uvs.getY(i) * (height / 15));
       }
-      
-      const mat = this.buildingMats[Math.floor(Math.random() * this.buildingMats.length)];
-      const roofMat = new THREE.MeshStandardMaterial({ color: 0x442222, roughness: 0.9 }); // Reddish roof
-      const materials = [mat, mat, roofMat, roofMat, mat, mat];
       
       const building = new THREE.Mesh(geo, materials);
       building.position.y = height / 2;
       building.receiveShadow = true;
-      item.mesh.add(building);
+      bGroup.add(building);
       
+      // Entrance awning
+      const awningGeo = new THREE.BoxGeometry(8, 1, depth + 2);
+      const awningMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
+      const awning = new THREE.Mesh(awningGeo, awningMat);
+      awning.position.y = 4;
+      bGroup.add(awning);
+
       // Pitched roof
-      if (Math.random() > 0.3) {
-        const pRoofGeo = new THREE.ConeGeometry(width * 0.8, 10, 4);
+      if (Math.random() > 0.4) {
+        const pRoofGeo = new THREE.ConeGeometry(width * 0.8, 8, 4);
         pRoofGeo.rotateY(Math.PI / 4);
-        const pRoof = new THREE.Mesh(pRoofGeo, roofMat);
-        pRoof.position.y = height + 5;
-        item.mesh.add(pRoof);
+        const pRoof = new THREE.Mesh(pRoofGeo, new THREE.MeshStandardMaterial({ color: 0x3a2c24 }));
+        pRoof.position.y = height + 4;
+        bGroup.add(pRoof);
       }
     } else {
-      // Shop (Short, wide, huge glowing neon sign)
+      // Storefront Building
       const width = 20 + Math.random() * 20;
-      const height = 10 + Math.random() * 10;
+      const height = 12 + Math.random() * 8;
       const depth = 15 + Math.random() * 15;
       
       const geo = new THREE.BoxGeometry(width, height, depth);
       const uvs = geo.attributes.uv;
       for(let i=0; i<uvs.count; i++) {
-          uvs.setXY(i, uvs.getX(i) * (width / 20), uvs.getY(i) * (height / 20));
+          uvs.setXY(i, uvs.getX(i) * (width / 15), uvs.getY(i) * (height / 15));
       }
-      
-      const mat = this.buildingMats[Math.floor(Math.random() * this.buildingMats.length)];
-      const roofMat = new THREE.MeshStandardMaterial({ color: 0x111111 });
-      const materials = [mat, mat, roofMat, roofMat, mat, mat];
       
       const building = new THREE.Mesh(geo, materials);
       building.position.y = height / 2;
       building.receiveShadow = true;
-      item.mesh.add(building);
+      bGroup.add(building);
       
-      // Neon Shop Sign
-      const signColors = [0xff00ff, 0x00ffff, 0xffff00, 0xff0033, 0x00ffcc];
+      // Glowing Storefront Sign Base
+      const signColors = [0xffffff, 0xff0033, 0xffaa00, 0x00aaff];
       const sColor = signColors[Math.floor(Math.random() * signColors.length)];
-      const signGeo = new THREE.BoxGeometry(width * 0.8, 3, 1);
-      const signMat = new THREE.MeshBasicMaterial({ color: sColor });
-      const sign = new THREE.Mesh(signGeo, signMat);
       
-      // Place sign on the road-facing side
-      // The object's local +X or -X faces the road?
-      // In resetSceneryObject, distanceFromBody is absolute X, and sign determines left or right.
-      // We'll just place the sign wrapping around, or just above the shop
-      sign.position.y = height + 1.5;
-      item.mesh.add(sign);
+      const signGeo = new THREE.BoxGeometry(width * 0.9, 2.5, depth + 1.5);
+      const signMat = new THREE.MeshStandardMaterial({ 
+        color: 0x111111,
+        emissive: new THREE.Color(sColor),
+        emissiveIntensity: 0.6
+      });
+      const sign = new THREE.Mesh(signGeo, signMat);
+      sign.position.y = 5; // Above the ground floor
+      bGroup.add(sign);
+      
+      // Glass doors below sign
+      const doorGeo = new THREE.BoxGeometry(width * 0.8, 5, depth + 1.2);
+      const doorMat = new THREE.MeshStandardMaterial({ color: 0x05050a, roughness: 0.1, metalness: 0.8 });
+      const doors = new THREE.Mesh(doorGeo, doorMat);
+      doors.position.y = 2.5;
+      bGroup.add(doors);
     }
 
+    item.mesh.add(bGroup);
     item.type = 'building';
   }
 
