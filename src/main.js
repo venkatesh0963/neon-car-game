@@ -19,26 +19,33 @@ camera.position.set(0, 8, 15);
 camera.lookAt(0, 0, -20);
 
 // Renderer setup
-const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(window.devicePixelRatio); // Full resolution
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 app.appendChild(renderer.domElement);
 
-// Post-processing Bloom
+// Post-processing setup with MSAA (Multisampled Anti-Aliasing for WebGL2)
+const renderTarget = new THREE.WebGLRenderTarget(
+  window.innerWidth * window.devicePixelRatio, 
+  window.innerHeight * window.devicePixelRatio, 
+  { samples: 4 } // 4x MSAA for perfectly crisp edges
+);
+
+const composer = new EffectComposer(renderer, renderTarget);
+
 const renderScene = new RenderPass(scene, camera);
+composer.addPass(renderScene);
+
 // Resolution, strength, radius, threshold
-const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.9);
-bloomPass.strength = 0.3;
-bloomPass.radius = 0.5;
-bloomPass.threshold = 0.9;
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio), 
+  0.3, 0.5, 0.9
+);
+composer.addPass(bloomPass);
 
 const outputPass = new OutputPass();
-
-const composer = new EffectComposer(renderer);
-composer.addPass(renderScene);
-composer.addPass(bloomPass);
 composer.addPass(outputPass);
 
 // Game Instance
@@ -49,6 +56,9 @@ window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  
+  const pixelRatio = renderer.getPixelRatio();
+  renderTarget.setSize(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
   composer.setSize(window.innerWidth, window.innerHeight);
 });
 
