@@ -146,13 +146,18 @@ export class Player {
     hlLeft.position.set(-0.7, 0.55, -2.5);
     this.mesh.add(hlLeft);
 
-    // Headlight Glow
-    const hlLight1 = new THREE.PointLight(0xffffee, 1.5, 12);
+    // Headlight Glow (SpotLights so they don't bleed backward)
+    const hlLight1 = new THREE.SpotLight(0xffffee, 1.5, 30, Math.PI / 4, 0.5, 1.0);
     hlLight1.position.set(0.7, 0.55, -2.8);
+    hlLight1.target.position.set(0.7, 0, -15);
     this.mesh.add(hlLight1);
-    const hlLight2 = new THREE.PointLight(0xffffee, 1.5, 12);
+    this.mesh.add(hlLight1.target);
+    
+    const hlLight2 = new THREE.SpotLight(0xffffee, 1.5, 30, Math.PI / 4, 0.5, 1.0);
     hlLight2.position.set(-0.7, 0.55, -2.8);
+    hlLight2.target.position.set(-0.7, 0, -15);
     this.mesh.add(hlLight2);
+    this.mesh.add(hlLight2.target);
 
     // Taillights
     const tlGeo = new THREE.BoxGeometry(0.7, 0.15, 0.1);
